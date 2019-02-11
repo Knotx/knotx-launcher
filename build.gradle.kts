@@ -173,7 +173,7 @@ tasks.register<Jar>("testJar") {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-fragment-api"
+            artifactId = "knotx-launcher"
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
