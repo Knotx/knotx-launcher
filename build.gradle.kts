@@ -49,54 +49,20 @@ tasks.named<Delete>("clean") {
 }
 
 dependencies {
-    annotationProcessor(platform("io.knotx:knotx-dependencies:${project.version}"))
-    annotationProcessor(group = "io.vertx", name = "vertx-codegen")
-    annotationProcessor(group = "io.vertx", name = "vertx-service-proxy", classifier = "processor")
-    annotationProcessor(group = "io.vertx", name = "vertx-rx-java2-gen")
-
-    api("io.knotx:knotx-fragment-api")
-    api(group = "com.google.guava", name = "guava")
-    api(group = "commons-io", name = "commons-io")
-    api(group = "org.apache.commons", name = "commons-lang3")
-    api(group = "com.typesafe", name = "config")
-    api(group = "commons-collections", name = "commons-collections")
-
     implementation(platform("io.knotx:knotx-dependencies:${project.version}"))
     implementation(group = "io.vertx", name = "vertx-core")
-    implementation(group = "io.vertx", name = "vertx-service-proxy")
     implementation(group = "io.vertx", name = "vertx-rx-java2")
-    implementation(group = "io.vertx", name = "vertx-codegen")
     implementation(group = "io.vertx", name = "vertx-config")
     implementation(group = "io.vertx", name = "vertx-config-hocon")
-    implementation(group = "io.vertx", name = "vertx-web")
-    implementation(group = "io.vertx", name = "vertx-web-api-contract")
-    implementation(group = "io.vertx", name = "vertx-web-client")
-    implementation(group = "io.vertx", name = "vertx-service-discovery")
-    implementation(group = "io.vertx", name = "vertx-circuit-breaker")
-    implementation(group = "io.vertx", name = "vertx-hazelcast")
+
+    implementation(group = "org.apache.commons", name = "commons-lang3")
+    implementation(group = "com.google.guava", name = "guava")
 
     testImplementation(group = "io.knotx", name = "knotx-junit5")
     testImplementation(group = "io.vertx", name = "vertx-junit5")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params")
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-migrationsupport")
     testImplementation(group = "io.vertx", name = "vertx-unit")
-    testImplementation(group = "com.github.stefanbirkner", name = "system-rules") {
-        exclude(module = "junit-dep")
-    }
-    testImplementation(group = "com.googlecode.zohhak", name = "zohhak")
-    testImplementation(group = "uk.co.datumedge", name = "hamcrest-json")
-    testImplementation(group = "org.hamcrest", name = "hamcrest-all")
-
-    testImplementation(group = "io.vertx", name = "vertx-core")
-    testImplementation(group = "io.vertx", name = "vertx-web")
-    testImplementation(group = "io.vertx", name = "vertx-web-api-contract")
-    testImplementation(group = "io.vertx", name = "vertx-web-client")
-    testImplementation(group = "io.vertx", name = "vertx-rx-java2")
-    testImplementation(group = "io.vertx", name = "vertx-service-proxy")
-    testImplementation(group = "io.vertx", name = "vertx-config")
-    testImplementation(group = "io.vertx", name = "vertx-config-hocon")
-    testImplementation(group = "io.vertx", name = "vertx-hazelcast")
 }
 
 junitTestCompile.extendsFrom(configurations.named("testImplementation").get())
@@ -140,7 +106,7 @@ tasks {
     getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
-        excludes.addAll("**/*.json", "*.md", "**/*.templ", "**/*.adoc", "**/build/*", "**/out/*", "**/generated/*", "/src/test/resources/*", "**/gradle/*", "gradlew", "*.properties", ".github/*", "gradlew.bat")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties","**/build/*", "**/out/*", "**/generated/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", ".idea/*")
     }
     getByName("build").dependsOn("rat")
 
