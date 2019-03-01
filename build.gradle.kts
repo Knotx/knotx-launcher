@@ -34,7 +34,7 @@ plugins {
 }
 
 group = "io.knotx"
-defaultTasks("dist")
+defaultTasks("distZip")
 
 // -----------------------------------------------------------------------------
 // Dependencies
