@@ -1,9 +1,10 @@
 # Knot.x Launcher
 
-Knot.x Launcher provides a way to configure and run **base** Knot.x instance. It consists of:
+Knot.x Launcher provides a way to configure and run **bare** Knot.x instance. It contains:
 - the `run-knotx` starting command that runs a Vert.x instance and deploys all configured modules 
+- instance configuration files
 - logger configuration files
-- configuration files
+- distribution that contains all above and minimal set of dependencies (jar files in the `lib` directory) required to start the instance
 
 It is used in the [Knot.x Stack](https://github.com/Knotx/knotx-stack) to deliver fully functional 
 bootstrap project for Knot.x-based projects.
@@ -25,7 +26,7 @@ $> ./gradlew
 
 To start Knot.x instance:
 ```
-$> cd build/distributions
+$> cd build/dist
 $> unzip knotx-launcher-X.Y.Z.zip -d launcher
 $> cd launcher
 $> ./bin/start run-knotx
@@ -34,20 +35,20 @@ $> ./bin/start run-knotx
 13:56:15.894 [vert.x-eventloop-thread-1] INFO io.vertx.core.impl.launcher.commands.VertxIsolatedDeployer - Succeeded in deploying verticle
 ```
 
-The `run-knotx` command starts Knot.x (Vert.x) instance and deploys all configured modules. This 
+The `run-knotx` command starts Vert.x instance and deploys all configured modules. This 
 command is registered in the `io.vertx.core.Launcher` class that is the main class of Vert.x 
 executable jar. Additionally it uses concepts of [configuration stores](https://vertx.io/docs/vertx-config/java/)
 to load configuration files from different locations and with different formats.
 
 It accepts options:
-- `config` - allows to define the `bootstrap.json` configuration file path, by default it looks for the `bootstrap.json` file in the classpath
+- `config` - allows to define the bootstrap configuration file path, if not provided, it looks for the `bootstrap.json` file in the classpath
 - `ha` - specify that the Knot.x is deployed with High Availability (HA) enabled, check Vert.x 
 [Automatic failover](https://vertx.io/docs/vertx-core/java/#_automatic_failover) section
 - `hagroup` - HA group that denotes a logical group of nodes in the cluster, check Vert.x
 [HA Groups](https://vertx.io/docs/vertx-core/java/#_ha_groups) section
 - `quora` - it is the minimum number of votes that a distributed transaction has to obtain in order to 
 be allowed to perform an operation in a distributed system
-- `cluster` - enables the clustering
+- `cluster` - enables clustering
 
 Knot.x provides the [example project](https://github.com/Knotx/knotx-example-project) that contains Docker Compose 
 [configuration file](https://github.com/Knotx/knotx-example-project/blob/master/acme-cluster/docker-compose.yml)
@@ -58,22 +59,22 @@ cluster manager dependency and configuration files in the classpath.
 
 ## How to configure
 
-The Knot.x configuration is basically split into two configuration files, such as
-- bootstrap.json - a starter configuration what defines the application configuration format, 
+The Knot.x configuration is basically split into two configuration files:
+- `bootstrap.json` - a starter configuration that defines the application configuration format, 
 location of application configurations (e.g. file, directory), as well as the ability to define 
-whether the config should be scanned periodically
-- application.conf - a main configuration file for the Knot.x based application. Knot.x 
+whether the config should be scanned periodically (configs change discovery)
+- `application.conf` - a main configuration file for the Knot.x based application. Knot.x 
 promotes a [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md) format as it provides 
-useful mechanism, such as includes, variable substitutions, etc.
+useful mechanism, such as includes, variable substitutions, etc. but other format may be used as well.
 
 The configuration is resolved in the following steps:
 - If not specified in command line (`-conf /path/to/bootstrap.json`), Knot.x looks for the 
 `bootstrap.json` file in the classpath
 - The definitions of [config stores](https://vertx.io/docs/vertx-config/java/) are read from the
-`bootstrap.json` file and configured configuration files locations are being loaded and validated
-- E.g. if `application.conf` was specified, the Knot.x loads it from the defined location, parses it, 
+`bootstrap.json` file and configuration files locations are loaded and validated
+- E.g. if `application.conf` was specified, Knot.x loads it from the defined location, parses it, 
 resolve any includes and starts all the Verticles defined in there.
-- In case of any missing files Knot.x stops with the proper error message
+- In case of any missing files, Knot.x stops with the proper error message.
 
 ### Configuration stores
 The `bootstrap.json` file is structured around:
@@ -99,12 +100,12 @@ The structure of the file is as follows
   }
 }
 ```
-- `scanPeriod` in milliseconds. If property is specified, the Knot.x scans the defined configuration stores and redeploys the Knot.x application on changes.
+- `scanPeriod` in milliseconds. If property is specified, Launcher scans the defined configuration stores and redeploys the Knot.x application on changes.
 - `stores` it's an array of configuration stores. Each store requires two properties:
   - `type` a declared data store, such as File(**file**), JSON(**json**), Environment Variables(**env**), System Properties(**sys**), HTTP endpoint(**http**), Event Bus (**event-bus**), Directory(**dir**), Git (**git**), Kubernetes Config Map(**configmap**), Redis(**redis**), Zookeeper (**zookeeper**), Consul (**consul**), Spring Config (**spring-config-server**), Vault (**vault**)
   - `format` a format of the configuration file, such as JSON(**json**), HOCON(**conf**) and YAML(**yaml**)
   
-In addition to the the out of the box config stores and formats it's easy to provide your own [custom 
+In addition to the out of the box config stores and formats it's easy to provide your own [custom 
 implementation](https://github.com/Knotx/knotx-launcher/blob/master/src/main/java/io/knotx/launcher/config/ConfProcessor.java) 
 thanks to the Vert.x Config SPI.
   
@@ -163,7 +164,7 @@ config.myserver.options.instances=2
 Consult [HOCON specification](https://github.com/typesafehub/config/blob/master/HOCON.md) to explore all possibilities.
 
 Knot.x Stack defines its own [`application.conf`](https://github.com/Knotx/knotx-stack/blob/master/knotx-stack-manager/src/main/packaging/conf/application.conf)
-that uses all configuration possibilities (includes, substitution etc).
+that uses all configuration possibilities (includes, substitution etc) and provides documentation (in comments) on how to configure Knot.x instance details.
 
 ### System properties
 As mentioned above, you can reference any configuration object or property using `${var}` syntax. Thanks to the HOCON capabilities
@@ -171,7 +172,7 @@ you can also use the same notation to get the value from JVM system properties, 
 ```
 java -Dmy.property=1234
 ```
-You can inject to your configuration in a such a way:
+And retrieve the value in the config like:
 ```
 someField = ${my.property}
 ```
