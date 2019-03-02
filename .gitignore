@@ -77,7 +77,6 @@ settings.json
 
 target
 atlassian-ide-plugin.xml
-bin/
 **/build/
 **/out/
 *.bak
