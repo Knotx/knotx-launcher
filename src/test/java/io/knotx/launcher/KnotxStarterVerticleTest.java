@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2019 Knot.x Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.knotx.launcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,8 +42,9 @@ class KnotxStarterVerticleTest {
     DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
 
     // when
-    vertx.rxDeployVerticle("io.knotx.launcher.KnotxStarterVerticle", options)
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
+            // then
             success -> testContext.completeNow(),
             testContext::failNow
         );
@@ -41,17 +57,16 @@ class KnotxStarterVerticleTest {
     String storesConfig = FileReader.readTextSafe("simple/bootstrap.json");
     DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
 
-    // when
     vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
+      // then
       assertNotNull(jsonObject.getString("myValueKey"));
       assertEquals("myValue", jsonObject.getString("myValueKey"));
     }));
 
-    vertx.rxDeployVerticle("io.knotx.launcher.KnotxStarterVerticle", options)
+    // when
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
-            success -> {
-              testContext.completeNow();
-            },
+            success -> testContext.completeNow(),
             testContext::failNow
         );
   }
@@ -63,17 +78,37 @@ class KnotxStarterVerticleTest {
     String storesConfig = FileReader.readTextSafe("system/bootstrap.json");
     DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
 
-    // when
     vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
+      // then
       assertNotNull(jsonObject.getString("myValueKey"));
       assertEquals("myValue", jsonObject.getString("systemPropertyValue"));
     }));
 
-    vertx.rxDeployVerticle("io.knotx.launcher.KnotxStarterVerticle", options)
+    // when
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
-            success -> {
-              testContext.completeNow();
-            },
+            success -> testContext.completeNow(),
+            testContext::failNow
+        );
+  }
+
+  @Test
+  @DisplayName("Deploy a module with a configuration included from a separate file.")
+  void startModuleWithIncludes(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("complex/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+    vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
+      // then
+      assertNotNull(jsonObject.getString("myValueKey"));
+      assertEquals("myValue", jsonObject.getString("overloadedValue"));
+    }));
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.completeNow(),
             testContext::failNow
         );
   }
