@@ -101,7 +101,7 @@ tasks {
     getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*", ".vertx/*")
     }
     getByName("build").dependsOn("rat")
 

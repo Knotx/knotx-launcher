@@ -34,6 +34,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class KnotxStarterVerticleTest {
 
+  public static final String MY_VALUE_KEY = "myValueKey";
+
   @Test
   @DisplayName("Example with empty modules starts successfully.")
   void startWithNoModules(VertxTestContext testContext, Vertx vertx) {
@@ -59,9 +61,9 @@ class KnotxStarterVerticleTest {
 
     vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
       // then
-      assertNotNull(jsonObject.getString("myValueKey"));
-      assertEquals("myValue", jsonObject.getString("myValueKey"));
-    }));
+      assertNotNull(jsonObject.getString(MY_VALUE_KEY));
+      assertEquals("myValue", jsonObject.getString(MY_VALUE_KEY));
+    }, testContext));
 
     // when
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -80,9 +82,9 @@ class KnotxStarterVerticleTest {
 
     vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
       // then
-      assertNotNull(jsonObject.getString("myValueKey"));
-      assertEquals("myValue", jsonObject.getString("systemPropertyValue"));
-    }));
+      assertNotNull(jsonObject.getString(MY_VALUE_KEY));
+      assertEquals("systemPropertyValue", jsonObject.getString(MY_VALUE_KEY));
+    }, testContext));
 
     // when
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -101,9 +103,9 @@ class KnotxStarterVerticleTest {
 
     vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
       // then
-      assertNotNull(jsonObject.getString("myValueKey"));
-      assertEquals("myValue", jsonObject.getString("overloadedValue"));
-    }));
+      assertNotNull(jsonObject.getString(MY_VALUE_KEY));
+      assertEquals("overloadedValue", jsonObject.getString(MY_VALUE_KEY));
+    }, testContext));
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -113,7 +115,8 @@ class KnotxStarterVerticleTest {
         );
   }
 
-  private VerticleFactory verifiableVerticleFactory(Consumer<JsonObject> assertions) {
+  private VerticleFactory verifiableVerticleFactory(Consumer<JsonObject> assertions,
+      VertxTestContext testContext) {
     return new VerticleFactory() {
       @Override
       public String prefix() {
@@ -122,7 +125,10 @@ class KnotxStarterVerticleTest {
 
       @Override
       public Verticle createVerticle(String verticleName, ClassLoader classLoader) {
-        return new VerifiableVerticle(assertions);
+        Consumer<JsonObject> checkedAssertions =
+            jsonObject -> testContext.verify(() -> assertions.accept(jsonObject));
+
+        return new VerifiableVerticle(checkedAssertions);
       }
     };
   }

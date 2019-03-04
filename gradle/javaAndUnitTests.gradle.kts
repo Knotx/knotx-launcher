@@ -28,7 +28,7 @@ allprojects {
         }
 
         tasks.withType<Test>().configureEach {
-            environment("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
+            systemProperties(Pair("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory"))
 
             failFast = true
             useJUnitPlatform()
