@@ -75,6 +75,9 @@ tasks.named<Delete>("clean") {
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
 }
+sourceSets.named("test") {
+    resources.srcDir("conf")
+}
 sourceSets.create("junitTest") {
     compileClasspath += sourceSets.named("main").get().output
 }

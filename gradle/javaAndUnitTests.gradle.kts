@@ -16,7 +16,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-subprojects {
+allprojects {
     plugins.withId("java-library") {
         tasks.withType<JavaCompile>().configureEach {
             with(options) {
