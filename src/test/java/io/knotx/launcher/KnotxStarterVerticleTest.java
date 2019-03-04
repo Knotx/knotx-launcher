@@ -115,6 +115,27 @@ class KnotxStarterVerticleTest {
         );
   }
 
+  @Test
+  @DisplayName("Deploy a module with a configuration included from a separate file and property defined in system properties.")
+  void startModuleWithIncludesWithSystemPropertyValue(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("complex-system/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+    vertx.registerVerticleFactory(verifiableVerticleFactory(jsonObject -> {
+      // then
+      assertNotNull(jsonObject.getString(MY_VALUE_KEY));
+      assertEquals("overloadedValue", jsonObject.getString(MY_VALUE_KEY));
+    }, testContext));
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.completeNow(),
+            testContext::failNow
+        );
+  }
+
   private VerticleFactory verifiableVerticleFactory(Consumer<JsonObject> assertions,
       VertxTestContext testContext) {
     return new VerticleFactory() {
