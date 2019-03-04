@@ -28,6 +28,7 @@ import com.typesafe.config.ConfigResolveOptions;
 import com.typesafe.config.ConfigResolver;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
+import io.knotx.launcher.property.SystemProperties;
 import io.vertx.config.spi.ConfigProcessor;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -38,24 +39,32 @@ import java.io.File;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Optional;
-import java.util.Properties;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
- * A processor using Typesafe Conf to read Hocon files. It also support JSON and Properties.
- * More details on Hocon and the used library on the
+ * A processor using Typesafe Config to read Hocon files. It also support JSON and Properties. More
+ * details on Hocon and the used library on the
  * <a href="https://github.com/typesafehub/config">Hocon documentation page</a>.
  *
- * This is a Vertx-config HOCON processor slightly modified to use custom hocon file includer.
- * It was required to fix the issue with hocon includer that works best if you specify full path,
- * and we wanted to have ability to specify path relative to the main configuration file.
+ * This is a Vertx-config HOCON processor slightly modified to use custom Hocon file includer. It
+ * was required to fix the issue with hocon includer that works best if you specify full path, and
+ * we wanted to have ability to specify path relative to the main configuration file.
  *
- * Additionally, a latest versionof typesafe config is used to get 'required' directive for includes.
+ * Additionally, a latest versionof typesafe config is used to get 'required' directive for
+ * includes.
  */
 public class ConfProcessor implements ConfigProcessor {
 
+  private SystemProperties properties = new SystemProperties();
+
+  /**
+   * This is the store format that is defined in the stores configuration file (by default
+   * <pre>bootstrap.conf</pre>), see <pre>configRetrieverOptions.stores[].format</pre>.
+   *
+   * @return supported store format
+   */
   @Override
   public String name() {
     return "conf";
@@ -92,16 +101,16 @@ public class ConfProcessor implements ConfigProcessor {
 
   private class SysPropResolver implements ConfigResolver {
 
-    private final Properties sysProps = System.getProperties();
-
     @Override
     public ConfigValue lookup(String path) {
-      String value = sysProps.getProperty(path);
-      if (StringUtils.isNotBlank(value)) {
+      Optional<String> property = properties.getProperty(path);
+      if (property.isPresent() && StringUtils.isNotBlank(property.get())) {
+        String value = property.get();
         if (NumberUtils.isCreatable(value)) {
           return ConfigValueFactory.fromAnyRef(NumberUtils.toInt(value));
         }
-        if (Boolean.TRUE.toString().equalsIgnoreCase(value) || Boolean.FALSE.toString().equalsIgnoreCase(value)) {
+        if (Boolean.TRUE.toString().equalsIgnoreCase(value) || Boolean.FALSE.toString()
+            .equalsIgnoreCase(value)) {
           return ConfigValueFactory.fromAnyRef(BooleanUtils.toBoolean(value));
         } else {
           return ConfigValueFactory.fromAnyRef(value);
@@ -131,11 +140,11 @@ public class ConfProcessor implements ConfigProcessor {
 
     private String configSearchFolder;
 
-    public KnotxConfIncluder(JsonObject configuration) {
+    KnotxConfIncluder(JsonObject configuration) {
       configSearchFolder = Optional.ofNullable(configuration.getString("path"))
           .map(path ->
-              path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : StringUtils.EMPTY
-          ).orElse(System.getProperty("knotx.home") + "/conf");
+              path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : StringUtils.EMPTY)
+          .orElse(properties.getProperty("knotx.home") + "/conf");
     }
 
     @Override

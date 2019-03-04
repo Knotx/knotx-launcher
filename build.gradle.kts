@@ -75,6 +75,9 @@ tasks.named<Delete>("clean") {
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
 }
+sourceSets.named("test") {
+    resources.srcDir("conf")
+}
 sourceSets.create("junitTest") {
     compileClasspath += sourceSets.named("main").get().output
 }
@@ -98,7 +101,7 @@ tasks {
     getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", ".idea/*")
+        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*")
     }
     getByName("build").dependsOn("rat")
 

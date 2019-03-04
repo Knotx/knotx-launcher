@@ -1,0 +1,15 @@
+{
+  "configRetrieverOptions": {
+    "scanPeriod": 5000,
+    "stores": [
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "complex/application.conf"
+        },
+        "optional": false
+      }
+    ]
+  }
+}

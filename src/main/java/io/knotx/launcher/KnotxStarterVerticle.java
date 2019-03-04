@@ -17,6 +17,7 @@ package io.knotx.launcher;
 
 import com.google.common.collect.Lists;
 import io.knotx.launcher.ModuleDescriptor.DeploymentState;
+import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
@@ -29,6 +30,7 @@ import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class KnotxStarterVerticle extends AbstractVerticle {
@@ -40,9 +42,13 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   private static final String FILE_STORE = "file";
   private List<ModuleDescriptor> deployedModules;
   private ConfigRetriever configRetriever;
+  private SystemProperties systemProperties;
+
 
   @Override
   public void start(Future<Void> startFuture) {
+    systemProperties = new SystemProperties();
+
     printLogo();
 
     try {
@@ -106,15 +112,14 @@ public class KnotxStarterVerticle extends AbstractVerticle {
     String resolvedPath = path;
 
     if (path.startsWith("${KNOTX_HOME}")) {
-      String home = System.getProperty("knotx.home");
-      if (home == null) {
-        home = System.getenv("KNOTX_HOME");
-        if (home == null) {
+      Optional<String> home = systemProperties.getProperty("knotx.home");
+      if (home.isPresent()) {
+        resolvedPath = path.replace("${KNOTX_HOME}", home.get());
+      } else {
+        if (System.getenv("KNOTX_HOME") == null) {
           throw new BadKnotxConfigurationException("Unable to resolve ${KNOTX_HOME} for " + path
               + ". System property 'knotx.home', or environment variable 'KNOTX_HOME' are not set");
         }
-      } else {
-        resolvedPath = path.replace("${KNOTX_HOME}", home);
       }
     }
 

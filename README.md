@@ -104,6 +104,9 @@ The structure of the file is as follows
 - `stores` it's an array of configuration stores. Each store requires two properties:
   - `type` a declared data store, such as File(**file**), JSON(**json**), Environment Variables(**env**), System Properties(**sys**), HTTP endpoint(**http**), Event Bus (**event-bus**), Directory(**dir**), Git (**git**), Kubernetes Config Map(**configmap**), Redis(**redis**), Zookeeper (**zookeeper**), Consul (**consul**), Spring Config (**spring-config-server**), Vault (**vault**)
   - `format` a format of the configuration file, such as JSON(**json**), HOCON(**conf**) and YAML(**yaml**)
+  - config
+    - path - a relative or absolute path to the Knot.x modules configuration file, if not specified 
+    then it get the `knotx.home` system property and append it with `conf`
   
 In addition to the out of the box config stores and formats it's easy to provide your own [custom 
 implementation](https://github.com/Knotx/knotx-launcher/blob/master/src/main/java/io/knotx/launcher/config/ConfProcessor.java) 
