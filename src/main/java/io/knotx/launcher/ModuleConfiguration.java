@@ -60,15 +60,15 @@ class ModuleConfiguration {
     return module;
   }
 
-  public String getModuleName() {
+  String getModuleName() {
     return moduleName;
   }
 
-  public DeploymentOptions getDeploymentOptions() {
+  DeploymentOptions getDeploymentOptions() {
     return deploymentOptions;
   }
 
-  public boolean isOptional() {
+  boolean isOptional() {
     return optional;
   }
 
