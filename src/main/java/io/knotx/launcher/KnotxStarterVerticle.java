@@ -22,7 +22,6 @@ import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -37,16 +36,12 @@ import java.util.stream.Collectors;
 public class KnotxStarterVerticle extends AbstractVerticle {
 
   private static final String MODULES_ARRAY = "modules";
-  private static final String CONFIG_OVERRIDE = "config";
-  private static final String MODULE_OPTIONS = "options";
-  private static final String OPTIONAL_KEY = "optional";
   private static final Logger LOGGER = LoggerFactory.getLogger(KnotxStarterVerticle.class);
   private static final String FILE_STORE = "file";
   private static final String KNOTX_HOME_PROPERTY = "knotx.home";
   private List<ModuleDescriptor> deployedModules;
   private ConfigRetriever configRetriever;
   private SystemProperties systemProperties;
-
 
   @Override
   public void start(Future<Void> startFuture) {
@@ -145,7 +140,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
               LOGGER.info("Instance modules: {}", buildMessage());
               if (completion != null) {
                 if (anyMandatoryDeploymentFailed(deployedModules)) {
-                  final String message = "Some mandatory modules failed to start";
+                  final String message = "Knot.x start FAILED: some mandatory modules deployment failed";
                   LOGGER.error(message);
                   completion.fail(message);
                 } else {
@@ -164,13 +159,16 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   }
 
   private boolean anyMandatoryDeploymentFailed(List<ModuleDescriptor> deployedModules) {
-    return deployedModules.stream().anyMatch(md -> md.getState() == DeploymentState.FAILED_MANDATORY);
+    return deployedModules.stream()
+        .anyMatch(md -> md.getState() == DeploymentState.FAILED_MANDATORY);
   }
 
   private Observable<ModuleDescriptor> deployVerticle(final JsonObject config,
       final ModuleDescriptor module) {
+    final ModuleConfiguration moduleConfiguration = ModuleConfiguration
+        .fromJson(config, module.getAlias());
     return vertx
-        .rxDeployVerticle(module.getName(), getModuleOptions(config, module.getAlias()))
+        .rxDeployVerticle(module.getName(), moduleConfiguration.getDeploymentOptions())
         .map(deployId ->
             new ModuleDescriptor(module)
                 .setDeploymentId(deployId)
@@ -178,43 +176,12 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         .doOnError(error ->
             LOGGER.error("Can't deploy {}: {}", module.toDescriptorLine(), error))
         .onErrorResumeNext((err) -> {
-          DeploymentState status = isModuleOptional(module.getAlias(), config) ? DeploymentState.FAILED_OPTIONAL : DeploymentState.FAILED_MANDATORY;
+          DeploymentState status =
+              moduleConfiguration.isOptional() ? DeploymentState.FAILED_OPTIONAL
+                  : DeploymentState.FAILED_MANDATORY;
           return Single.just(new ModuleDescriptor(module).setState(status));
         })
         .toObservable();
-  }
-
-  private boolean isModuleOptional(String alias, JsonObject config) {
-    boolean optional = false;
-    if (config.containsKey(CONFIG_OVERRIDE)) {
-      if (config.getJsonObject(CONFIG_OVERRIDE).containsKey(alias)) {
-        JsonObject moduleConfig = config.getJsonObject(CONFIG_OVERRIDE).getJsonObject(alias);
-        if (moduleConfig.containsKey(MODULE_OPTIONS)) {
-          optional = moduleConfig.getJsonObject(MODULE_OPTIONS).getBoolean(OPTIONAL_KEY, false);
-        }
-      }
-    }
-    return optional;
-  }
-
-  private DeploymentOptions getModuleOptions(final JsonObject config, final String module) {
-    DeploymentOptions deploymentOptions = new DeploymentOptions();
-    if (config.containsKey(CONFIG_OVERRIDE)) {
-      if (config.getJsonObject(CONFIG_OVERRIDE).containsKey(module)) {
-        JsonObject moduleConfig = config.getJsonObject(CONFIG_OVERRIDE).getJsonObject(module);
-        if (moduleConfig.containsKey(MODULE_OPTIONS)) {
-          deploymentOptions.fromJson(moduleConfig.getJsonObject(MODULE_OPTIONS));
-        } else {
-          LOGGER.warn(
-              "Module '{}' has config, but missing 'options' object. "
-                  + "Default configuration is to be used", module);
-        }
-      } else {
-        LOGGER.warn("Module '{}' if not configured in the config file. Used default configuration",
-            module);
-      }
-    }
-    return deploymentOptions;
   }
 
   private String buildMessage() {
