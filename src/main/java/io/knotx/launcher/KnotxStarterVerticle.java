@@ -38,8 +38,10 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   private static final String MODULES_ARRAY = "modules";
   private static final String CONFIG_OVERRIDE = "config";
   private static final String MODULE_OPTIONS = "options";
+  private static final String OPTIONAL_KEY = "optional";
   private static final Logger LOGGER = LoggerFactory.getLogger(KnotxStarterVerticle.class);
   private static final String FILE_STORE = "file";
+  private static final String KNOTX_HOME_PROPERTY = "knotx.home";
   private List<ModuleDescriptor> deployedModules;
   private ConfigRetriever configRetriever;
   private SystemProperties systemProperties;
@@ -112,7 +114,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
     String resolvedPath = path;
 
     if (path.startsWith("${KNOTX_HOME}")) {
-      Optional<String> home = systemProperties.getProperty("knotx.home");
+      Optional<String> home = systemProperties.getProperty(KNOTX_HOME_PROPERTY);
       if (home.isPresent()) {
         resolvedPath = path.replace("${KNOTX_HOME}", home.get());
       } else {
@@ -139,9 +141,16 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         .subscribe(
             deployments -> {
               deployedModules = Lists.newArrayList(deployments);
-              LOGGER.info("Knot.x STARTED {}", buildMessage());
+              LOGGER.info("Instance modules: {}", buildMessage());
               if (completion != null) {
-                completion.complete();
+                if (anyMandatoryDeploymentFailed(deployedModules)) {
+                  final String message = "Some mandatory modules failed to start";
+                  LOGGER.error(message);
+                  completion.fail(message);
+                } else {
+                  LOGGER.info("Knot.x STARTED successfully");
+                  completion.complete();
+                }
               }
             },
             error -> {
@@ -151,6 +160,10 @@ public class KnotxStarterVerticle extends AbstractVerticle {
               }
             }
         );
+  }
+
+  private boolean anyMandatoryDeploymentFailed(List<ModuleDescriptor> deployedModules) {
+    return deployedModules.stream().anyMatch(md -> md.getState() == DeploymentState.FAILED_MANDATORY);
   }
 
   private Observable<ModuleDescriptor> deployVerticle(final JsonObject config,
@@ -163,9 +176,24 @@ public class KnotxStarterVerticle extends AbstractVerticle {
                 .setState(DeploymentState.SUCCESS))
         .doOnError(error ->
             LOGGER.error("Can't deploy {}: {}", module.toDescriptorLine(), error))
-        .onErrorResumeNext((err) ->
-            Single.just(new ModuleDescriptor(module).setState(DeploymentState.FAILED)))
+        .onErrorResumeNext((err) -> {
+          DeploymentState status = isModuleOptional(module.getAlias(), config) ? DeploymentState.FAILED_OPTIONAL : DeploymentState.FAILED_MANDATORY;
+          return Single.just(new ModuleDescriptor(module).setState(status));
+        })
         .toObservable();
+  }
+
+  private boolean isModuleOptional(String alias, JsonObject config) {
+    boolean optional = false;
+    if (config.containsKey(CONFIG_OVERRIDE)) {
+      if (config.getJsonObject(CONFIG_OVERRIDE).containsKey(alias)) {
+        JsonObject moduleConfig = config.getJsonObject(CONFIG_OVERRIDE).getJsonObject(alias);
+        if (moduleConfig.containsKey(MODULE_OPTIONS)) {
+          optional = moduleConfig.getJsonObject(MODULE_OPTIONS).getBoolean(OPTIONAL_KEY, false);
+        }
+      }
+    }
+    return optional;
   }
 
   private DeploymentOptions getModuleOptions(final JsonObject config, final String module) {

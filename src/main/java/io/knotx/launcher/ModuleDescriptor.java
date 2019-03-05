@@ -101,7 +101,8 @@ public class ModuleDescriptor {
   public enum DeploymentState {
     UNKNOWN("Unknown state"),
     SUCCESS("Deployed"),
-    FAILED("Failed to deploy");
+    FAILED_OPTIONAL("Failed to deploy optional"),
+    FAILED_MANDATORY("Failed to deploy mandatory");
 
     private final String message;
 

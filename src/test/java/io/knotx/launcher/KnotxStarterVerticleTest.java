@@ -115,6 +115,45 @@ class KnotxStarterVerticleTest {
         );
   }
 
+  @Test
+  @DisplayName("Deploy failing module and expect instance start fails by default.")
+  void failStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("failing/default/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+    vertx.registerVerticleFactory(failingVerticleFactory());
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.failNow(new RuntimeException("This test should fail")),
+            throwable -> testContext.completeNow()
+        );
+  }
+
+  @Test
+  @DisplayName("Deploy failing optional module and expect instance start success.")
+  void successStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("failing/optional/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+
+    vertx.registerVerticleFactory(failingVerticleFactory());
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> {
+              testContext.completeNow();
+            },
+            throwable -> {
+              testContext.failNow(throwable);
+            }
+        );
+  }
+
   private VerticleFactory verifiableVerticleFactory(Consumer<JsonObject> assertions,
       VertxTestContext testContext) {
     return new VerticleFactory() {
@@ -129,6 +168,20 @@ class KnotxStarterVerticleTest {
             jsonObject -> testContext.verify(() -> assertions.accept(jsonObject));
 
         return new VerifiableVerticle(checkedAssertions);
+      }
+    };
+  }
+
+  private VerticleFactory failingVerticleFactory() {
+    return new VerticleFactory() {
+      @Override
+      public String prefix() {
+        return "test";
+      }
+
+      @Override
+      public Verticle createVerticle(String verticleName, ClassLoader classLoader) {
+          return new FailingVerticle();
       }
     };
   }
