@@ -143,6 +143,19 @@ config.myserver {
 
 ```
 
+The `config` section for each module is expected to have following structure: `MODULE_ALIAS.options.config`, where:
+- `MODULE_ALIAS` is exactly the same alias that was used in the `modules` array (`myserver` for the 
+example above),
+- `options` object carries-on configuration called DeploymentOptions for a given verticle.
+It allows you to control the verticle behaviour, such as how many instances, classpath isolation, 
+workers, etc. Read more here: http://vertx.io/docs/vertx-core/dataobjects.html#DeploymentOptions,
+  - `options.config` contain additional config for the module that is used to create its instance 
+  that is passed as module `DeploymentOptions.config`.
+  - `options.optional` - the flag that says if the module is optional or mandatory. Optional modules
+  will not fail starting the whole Knot.x instance if they fail to deploy. Mandatory module
+  deployment fail will fail Knot.x instance start. Default value for each module is `false`
+  (that means, failing module start fails instance start/redeploy).
+
 The `config` section can be defined in the form that works best for you, e.g.
 It can be just raw JSON, or HOCONized version of it as follows:
 ```hocon
