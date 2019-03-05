@@ -17,6 +17,7 @@ package io.knotx.launcher;
 
 import com.google.common.collect.Lists;
 import io.knotx.launcher.ModuleDescriptor.DeploymentState;
+import io.knotx.launcher.helper.LogoPrintHelper;
 import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -51,7 +52,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   public void start(Future<Void> startFuture) {
     systemProperties = new SystemProperties();
 
-    printLogo();
+    LogoPrintHelper.printLogo();
 
     try {
       JsonObject configOptions = getConfigRetrieverOptions(config());
@@ -228,49 +229,4 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         .toString();
   }
 
-  private void printLogo() {
-    // @formatter:off
-    System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-    System.out.println("@@                                  ,,,,,,,,,                                 @@");
-    System.out.println("@@                                *,,,,,,,,,,,*                               @@");
-    System.out.println("@@                              @@&,,,,,,,,,,,,,*                             @@");
-    System.out.println("@@                            @@@@@@,,,,,,,,,,,,,,*                           @@");
-    System.out.println("@@                          @@@@@@@@@,,,,,,,,,,,,,,,*                         @@");
-    System.out.println("@@                        @@@@@@@@@@@@/,,,,,,,,,,,,,,,*                       @@");
-    System.out.println("@@                      @@@@@@@@@@@@@@@#,,,,,,,,,,,,,,,,*                     @@");
-    System.out.println("@@                    &@@@@@@@@@@@@@@@@@&,,,,,,,,,,,,,,*@@#                   @@");
-    System.out.println("@@                  @@&,@@@@@@@@@@@@@@@@@@,,,,,,,,,,,,(@@@@@#                 @@");
-    System.out.println("@@                @@@@&,,%@@@@@@@@@@@@@@@@@*,,,,,,,,,%@@@@@@@@#               @@");
-    System.out.println("@@              @@@@@@&,,,*@@@@@@@@@@@@@@@@@(,,,,,,,@@@@@@@@@@@@#             @@");
-    System.out.println("@@            @@@@@@@@&,,,,,@@@@@@@@@@@@@@@@@&,,,,,@@@@@@@@@@@@@@@#           @@");
-    System.out.println("@@          @@@@@@@@@@&,,,,,,%@@@@@@@@@@@@@@@@@,,/@@@@@@@@@@@@@@@@@,*         @@");
-    System.out.println("@@        @@@@@@@@@@@@&,,,,,,,*@@@@@@@@@@@@@@@@@%@@@@@@@@@@@@@@@@#,,,,*       @@");
-    System.out.println("@@      ,@@@@@@@@@@@@@&,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*,,,,,,,*     @@");
-    System.out.println("@@    ,,,@@@@@@@@@@@@@&,,,,,,,,,,#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,,,,,,,,,,,*   @@");
-    System.out.println("@@  *,,,,#@@@@@@@@@@@@&,,,,,,,,,,,*@@@@@@@@@@@@@@@@@@@@@@@@@@(,,,,,,,,,,,,,,* @@");
-    System.out.println("@@ ,,,,,,*@@@@@@@@@@@@&,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@,,,,,,,,,,,,,,,,,*@@");
-    System.out.println("@@,,,,,,,,@@@@@@@@@@@@&,,,,,,,,,,,,,,(@@@@@@@@@@@@@@@@@@@@&,,,,,,,,,,,,,,,,,,,@@");
-    System.out.println("@@/,,,,,,,&@@@@@@@@@@@&,,,,,,,,,,,,,,,*@@@@@@@@@@@@@@@@@@@/,,,,,,,,,,,,,,,,,,,@@");
-    System.out.println("@@ *,,,,,,(@@@@@@@@@@@&,,,,,,,,,,,,,,#@@@@@@@@@@@@@@@@@@@@@&,,,,,,,,,,,,,,,,, @@");
-    System.out.println("@@   ,,,,,*@@@@@@@@@@@&,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@,,,,,,,,,,,,,,*  @@");
-    System.out.println("@@     ,,,,@@@@@@@@@@@&,,,,,,,,,,,*@@@@@@@@@@@@@@@@@@@@@@@@@@@(,,,,,,,,,,*    @@");
-    System.out.println("@@       ,,,,,,,,,,,,,,,,,,,,,,,,%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,,,,,,,*      @@");
-    System.out.println("@@         ,,&@@@@@@@%,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*,,,*        @@");
-    System.out.println("@@           @@@@@@@@@@*,,,,,,/@@@@@@@@@@@@@@@@@*@@@@@@@@@@@@@@@@@#*          @@");
-    System.out.println("@@             @@@@@@@@@,,,,,&@@@@@@@@@@@@@@@@#,,,@@@@@@@@@@@@@@@@            @@");
-    System.out.println("@@               @@@@@@@,,,,@@@@@@@@@@@@@@@@@*,,,,,%@@@@@@@@@@@@              @@");
-    System.out.println("@@                 @@@@*,,(@@@@@@@@@@@@@@@@@,,,,,,,,/@@@@@@@@@                @@");
-    System.out.println("@@                   @,,,&@@@@@@@@@@@@@@@@&,,,,,,,,,,,@@@@@@                  @@");
-    System.out.println("@@                     *@@@@@@@@@@@@@@@@@(,,,,,,,,,,,,,&@@                    @@");
-    System.out.println("@@                       @@@@@@@@@@@@@@@*,,,,,,,,,,,,,,*                      @@");
-    System.out.println("@@                         @@@@@@@@@@@@,,,,,,,,,,,,,,*                        @@");
-    System.out.println("@@                           @@@@@@@@%,,,,,,,,,,,,,*                          @@");
-    System.out.println("@@                            @@@@@/,,,,,,,,,,,,*                             @@");
-    System.out.println("@@                               @@,,,,,,,,,,,,*                              @@");
-    System.out.println("@@                                 *,,,,,,,,,*                                @@");
-    System.out.println("@@                                    ,,,*/                                   @@");
-    System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-    System.out.println();
-    // @formatter:on
-  }
 }
