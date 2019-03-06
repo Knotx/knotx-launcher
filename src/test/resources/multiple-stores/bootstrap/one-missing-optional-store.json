@@ -1,0 +1,15 @@
+{
+  "configRetrieverOptions": {
+    "scanPeriod": 5000,
+    "stores": [
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "file-that-does-not-exists.conf"
+        },
+        "optional": true
+      }
+    ]
+  }
+}

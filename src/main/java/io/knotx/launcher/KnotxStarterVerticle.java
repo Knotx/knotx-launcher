@@ -23,6 +23,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -126,7 +127,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
 
   private void deployVerticles(JsonObject config, Future<Void> completion) {
     LOGGER.info("STARTING Knot.x {} @ {}", Version.getVersion(), Version.getBuildTime());
-    Observable.fromIterable(config.getJsonArray(MODULES_ARRAY))
+    Observable.fromIterable(getModulesFromConfigOrEmptyArray(config))
         .cast(String.class)
         .map(modulesLine -> ModuleDescriptor.fromConfig(modulesLine, config))
         .flatMap(this::deployVerticle)
@@ -156,6 +157,10 @@ public class KnotxStarterVerticle extends AbstractVerticle {
               }
             }
         );
+  }
+
+  private JsonArray getModulesFromConfigOrEmptyArray(JsonObject config) {
+    return Optional.ofNullable(config.getJsonArray(MODULES_ARRAY)).orElse(new JsonArray());
   }
 
   private boolean anyRequiredModuleFailed(List<ModuleDescriptor> deployedModules) {
