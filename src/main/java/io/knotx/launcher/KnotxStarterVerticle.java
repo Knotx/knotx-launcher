@@ -22,6 +22,7 @@ import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -160,15 +161,17 @@ public class KnotxStarterVerticle extends AbstractVerticle {
 
   private boolean anyMandatoryDeploymentFailed(List<ModuleDescriptor> deployedModules) {
     return deployedModules.stream()
-        .anyMatch(md -> md.getState() == DeploymentState.FAILED_MANDATORY);
+        .anyMatch(md -> md.getState() == DeploymentState.FAILED_REQUIRED);
   }
 
   private Observable<ModuleDescriptor> deployVerticle(final JsonObject config,
       final ModuleDescriptor module) {
     final ModuleConfiguration moduleConfiguration = ModuleConfiguration
         .fromJson(config, module.getAlias());
+    final DeploymentOptions deploymentOptions = moduleConfiguration.getDeploymentOptions();
+    module.setInstances(deploymentOptions.getInstances());
     return vertx
-        .rxDeployVerticle(module.getName(), moduleConfiguration.getDeploymentOptions())
+        .rxDeployVerticle(module.getName(), deploymentOptions)
         .map(deployId ->
             new ModuleDescriptor(module)
                 .setDeploymentId(deployId)
@@ -177,8 +180,8 @@ public class KnotxStarterVerticle extends AbstractVerticle {
             LOGGER.error("Can't deploy {}: {}", module.toDescriptorLine(), error))
         .onErrorResumeNext((err) -> {
           DeploymentState status =
-              moduleConfiguration.isOptional() ? DeploymentState.FAILED_OPTIONAL
-                  : DeploymentState.FAILED_MANDATORY;
+              moduleConfiguration.isRequired() ? DeploymentState.FAILED_REQUIRED
+                  : DeploymentState.FAILED_OPTIONAL;
           return Single.just(new ModuleDescriptor(module).setState(status));
         })
         .toObservable();
@@ -189,7 +192,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         .append(
             deployedModules.stream()
                 .map(item -> String
-                    .format("\t\t%s %s [%s]", item.getState(), item.toDescriptorLine(),
+                    .format("\t\t%s %d instance(s) of %s [%s]", item.getState(), item.getInstances(), item.toDescriptorLine(),
                         item.getDeploymentId()))
                 .collect(Collectors.joining(System.lineSeparator())))
         .append(System.lineSeparator())

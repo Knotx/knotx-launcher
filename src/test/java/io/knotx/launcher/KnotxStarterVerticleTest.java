@@ -26,7 +26,9 @@ import io.vertx.core.spi.VerticleFactory;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class KnotxStarterVerticleTest {
 
-  public static final String MY_VALUE_KEY = "myValueKey";
+  private static final String MY_VALUE_KEY = "myValueKey";
 
   @Test
   @DisplayName("Example with empty modules starts successfully.")
@@ -116,13 +118,13 @@ class KnotxStarterVerticleTest {
   }
 
   @Test
-  @DisplayName("Deploy failing module and expect instance start fails by default.")
+  @DisplayName("Deploy single failing module and expect instance start fails by default.")
   void failStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
     // given
     String storesConfig = FileReader.readTextSafe("failing/default/bootstrap.json");
     DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
 
-    vertx.registerVerticleFactory(failingVerticleFactory());
+    vertx.registerVerticleFactory(FailingVerticlesFactory.everyVerticleFails());
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -133,24 +135,55 @@ class KnotxStarterVerticleTest {
   }
 
   @Test
-  @DisplayName("Deploy failing optional module and expect instance start success.")
+  @DisplayName("Deploy multiple modules when some are failing and expect instance start fails by default.")
+  void failStartWhenAnyModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("failing/multiple/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+    vertx.registerVerticleFactory(FailingVerticlesFactory.everySecondVerticleFails());
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.failNow(new RuntimeException("This test should fail")),
+            throwable -> testContext.completeNow()
+        );
+  }
+
+  @Test
+  @DisplayName("Deploy failing module marked as not required and expect instance start successfully.")
   void successStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
     // given
     String storesConfig = FileReader.readTextSafe("failing/optional/bootstrap.json");
     DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
 
 
-    vertx.registerVerticleFactory(failingVerticleFactory());
+    vertx.registerVerticleFactory(FailingVerticlesFactory.everyVerticleFails());
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
-            success -> {
-              testContext.completeNow();
-            },
-            throwable -> {
-              testContext.failNow(throwable);
-            }
+            success -> testContext.completeNow(),
+            testContext::failNow
+        );
+  }
+
+  @Test
+  @DisplayName("Deploy multiple instances of failing module marked as not required and expect instance start successfully.")
+  void successStartWhenModuleDeploymentFailsWithThreeInstances(VertxTestContext testContext, Vertx vertx) {
+    // given
+    String storesConfig = FileReader.readTextSafe("failing/multiple-optional/bootstrap.json");
+    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
+
+
+    vertx.registerVerticleFactory(FailingVerticlesFactory.everySecondVerticleFails());
+
+    // then
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.completeNow(),
+            testContext::failNow
         );
   }
 
@@ -172,18 +205,35 @@ class KnotxStarterVerticleTest {
     };
   }
 
-  private VerticleFactory failingVerticleFactory() {
-    return new VerticleFactory() {
-      @Override
-      public String prefix() {
-        return "test";
-      }
+  static class FailingVerticlesFactory implements VerticleFactory {
+    static final Function<Integer, Boolean> EVERY_VERTICLE_FAILS = i -> true;
+    static final Function<Integer, Boolean> EVERY_SECOND_VERTICLE_FAILS = i -> i % 2 == 0;
 
-      @Override
-      public Verticle createVerticle(String verticleName, ClassLoader classLoader) {
-          return new FailingVerticle();
-      }
-    };
+    private final AtomicInteger count = new AtomicInteger();
+    private final Function<Integer, Boolean> shouldVerticleFail;
+
+    FailingVerticlesFactory(
+        Function<Integer, Boolean> shouldVerticleFail) {
+      this.shouldVerticleFail = shouldVerticleFail;
+    }
+
+    static FailingVerticlesFactory everyVerticleFails() {
+      return new FailingVerticlesFactory(EVERY_VERTICLE_FAILS);
+    }
+
+    static FailingVerticlesFactory everySecondVerticleFails() {
+      return new FailingVerticlesFactory(EVERY_SECOND_VERTICLE_FAILS);
+    }
+
+    @Override
+    public String prefix() {
+      return "test";
+    }
+
+    @Override
+    public Verticle createVerticle(String verticleName, ClassLoader classLoader) {
+      return new VerifiableVerticle(null, shouldVerticleFail.apply(count.getAndIncrement()));
+    }
   }
 
 }

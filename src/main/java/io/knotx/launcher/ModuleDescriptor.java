@@ -25,6 +25,7 @@ public class ModuleDescriptor {
   private String name;
   private String deploymentId;
   private DeploymentState state = DeploymentState.UNKNOWN;
+  private int instances;
 
   private ModuleDescriptor() {
     //Default constructor
@@ -35,6 +36,7 @@ public class ModuleDescriptor {
     this.name = other.name;
     this.deploymentId = other.deploymentId;
     this.state = other.state;
+    this.instances = other.instances;
   }
 
   public static ModuleDescriptor parse(String line) {
@@ -89,20 +91,31 @@ public class ModuleDescriptor {
     return alias + MODULE_ALIAS_SEPARATOR + name;
   }
 
+  public int getInstances() {
+    return instances;
+  }
+
+  public ModuleDescriptor setInstances(int instances) {
+    this.instances = Integer.max(instances, 1);
+    return this;
+  }
+
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder(alias).append(" [").append(name).append("]");
-    if (deploymentId != null) {
-      result.append(" [").append(deploymentId).append("]");
-    }
-    return result.toString();
+    return "ModuleDescriptor{" +
+        "alias='" + alias + '\'' +
+        ", name='" + name + '\'' +
+        ", deploymentId='" + deploymentId + '\'' +
+        ", state=" + state +
+        ", instances=" + instances +
+        '}';
   }
 
   public enum DeploymentState {
     UNKNOWN("Unknown state"),
     SUCCESS("Deployed"),
     FAILED_OPTIONAL("Failed to deploy optional"),
-    FAILED_MANDATORY("Failed to deploy mandatory");
+    FAILED_REQUIRED("Failed to deploy required");
 
     private final String message;
 

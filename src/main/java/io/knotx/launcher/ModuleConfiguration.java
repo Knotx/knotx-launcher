@@ -26,11 +26,11 @@ class ModuleConfiguration {
 
   private static final String CONFIG_OVERRIDE = "config";
   private static final String MODULE_OPTIONS = "options";
-  private static final String OPTIONAL_KEY = "optional";
+  private static final String REQUIRED_KEY = "required";
 
   private final String moduleName;
   private DeploymentOptions deploymentOptions;
-  private boolean optional;
+  private boolean required = true;
 
   private ModuleConfiguration(String moduleName) {
     this.moduleName = moduleName;
@@ -44,8 +44,8 @@ class ModuleConfiguration {
         JsonObject moduleConfig = json.getJsonObject(CONFIG_OVERRIDE).getJsonObject(alias);
         if (moduleConfig.containsKey(MODULE_OPTIONS)) {
           module.deploymentOptions.fromJson(moduleConfig.getJsonObject(MODULE_OPTIONS));
-          module.optional = moduleConfig.getJsonObject(MODULE_OPTIONS)
-              .getBoolean(OPTIONAL_KEY, false);
+          module.required = moduleConfig.getJsonObject(MODULE_OPTIONS)
+              .getBoolean(REQUIRED_KEY, true);
         } else {
           LOGGER.warn(
               "Module '{}' has config, but missing 'options' object. "
@@ -68,8 +68,8 @@ class ModuleConfiguration {
     return deploymentOptions;
   }
 
-  boolean isOptional() {
-    return optional;
+  boolean isRequired() {
+    return required;
   }
 
   @Override
@@ -77,7 +77,7 @@ class ModuleConfiguration {
     return "ModuleConfiguration{" +
         "moduleName='" + moduleName + '\'' +
         ", deploymentOptions=" + deploymentOptions.toJson().encode() +
-        ", optional=" + optional +
+        ", required=" + required +
         '}';
   }
 }
