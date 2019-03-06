@@ -22,7 +22,6 @@ import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -129,8 +128,8 @@ public class KnotxStarterVerticle extends AbstractVerticle {
     LOGGER.info("STARTING Knot.x {} @ {}", Version.getVersion(), Version.getBuildTime());
     Observable.fromIterable(config.getJsonArray(MODULES_ARRAY))
         .cast(String.class)
-        .map(ModuleDescriptor::parse)
-        .flatMap(item -> deployVerticle(config, item))
+        .map(modulesLine -> ModuleDescriptor.fromConfig(modulesLine, config))
+        .flatMap(this::deployVerticle)
         .reduce(new ArrayList<ModuleDescriptor>(), (accumulator, item) -> {
           accumulator.add(item);
           return accumulator;
@@ -140,7 +139,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
               deployedModules = Lists.newArrayList(deployments);
               LOGGER.info("Instance modules: {}", buildMessage());
               if (completion != null) {
-                if (anyMandatoryDeploymentFailed(deployedModules)) {
+                if (anyRequiredModuleFailed(deployedModules)) {
                   final String message = "Knot.x start FAILED: some mandatory modules deployment failed";
                   LOGGER.error(message);
                   completion.fail(message);
@@ -159,42 +158,30 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         );
   }
 
-  private boolean anyMandatoryDeploymentFailed(List<ModuleDescriptor> deployedModules) {
+  private boolean anyRequiredModuleFailed(List<ModuleDescriptor> deployedModules) {
     return deployedModules.stream()
-        .anyMatch(md -> md.getState() == DeploymentState.FAILED_REQUIRED);
+        .anyMatch(md -> md.getState() == DeploymentState.FAILED && md.isRequired());
   }
 
-  private Observable<ModuleDescriptor> deployVerticle(final JsonObject config,
-      final ModuleDescriptor module) {
-    final ModuleConfiguration moduleConfiguration = ModuleConfiguration
-        .fromJson(config, module.getAlias());
-    final DeploymentOptions deploymentOptions = moduleConfiguration.getDeploymentOptions();
-    module.setInstances(deploymentOptions.getInstances());
+  private Observable<ModuleDescriptor> deployVerticle(final ModuleDescriptor module) {
     return vertx
-        .rxDeployVerticle(module.getName(), deploymentOptions)
+        .rxDeployVerticle(module.getName(), module.getDeploymentOptions())
         .map(deployId ->
             new ModuleDescriptor(module)
                 .setDeploymentId(deployId)
                 .setState(DeploymentState.SUCCESS))
         .doOnError(error ->
             LOGGER.error("Can't deploy {}: {}", module.toDescriptorLine(), error))
-        .onErrorResumeNext((err) -> {
-          DeploymentState status =
-              moduleConfiguration.isRequired() ? DeploymentState.FAILED_REQUIRED
-                  : DeploymentState.FAILED_OPTIONAL;
-          return Single.just(new ModuleDescriptor(module).setState(status));
-        })
+        .onErrorResumeNext(
+            (err) -> Single.just(new ModuleDescriptor(module).setState(DeploymentState.FAILED)))
         .toObservable();
   }
 
   private String buildMessage() {
     return new StringBuilder(System.lineSeparator())
-        .append(
-            deployedModules.stream()
-                .map(item -> String
-                    .format("\t\t%s %d instance(s) of %s [%s]", item.getState(), item.getInstances(), item.toDescriptorLine(),
-                        item.getDeploymentId()))
-                .collect(Collectors.joining(System.lineSeparator())))
+        .append(deployedModules.stream()
+            .map(ModuleDescriptor::toLogEntry)
+            .collect(Collectors.joining(System.lineSeparator())))
         .append(System.lineSeparator())
         .toString();
   }

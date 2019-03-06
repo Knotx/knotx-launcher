@@ -151,10 +151,11 @@ It allows you to control the verticle behaviour, such as how many instances, cla
 workers, etc. Read more here: http://vertx.io/docs/vertx-core/dataobjects.html#DeploymentOptions,
   - `options.config` contain additional config for the module that is used to create its instance 
   that is passed as module `DeploymentOptions.config`.
-  - `options.optional` - the flag that says if the module is optional or mandatory. Optional modules
-  will not fail starting the whole Knot.x instance if they fail to deploy. Mandatory module
-  deployment fail will fail Knot.x instance start. Default value for each module is `false`
-  (that means, failing module start fails instance start/redeploy).
+  - `options.required` - Some modules are crucial for Knot.x instance (e.g. HTTP Server) and 
+  the instance should not start without them. Required (`required=true`) modules
+  will fail starting the whole Knot.x instance if they fail to deploy, while not-required (`required=false`)
+  let the the instance start despite the fact they failed to start. 
+  By default **all modules are required**.
 
 The `config` section can be defined in the form that works best for you, e.g.
 It can be just raw JSON, or HOCONized version of it as follows:

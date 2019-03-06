@@ -15,48 +15,48 @@
  */
 package io.knotx.launcher;
 
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+
 public class ModuleDescriptor {
 
-  public static final String MODULE_DEFAULT_PREFIX = "java:";
+  private static final Logger LOGGER = LoggerFactory.getLogger(ModuleDescriptor.class);
 
+  public static final String MODULE_DEFAULT_PREFIX = "java:";
   public static final char MODULE_ALIAS_SEPARATOR = '=';
+
+  private static final String CONFIG_OVERRIDE = "config";
+  private static final String MODULE_OPTIONS = "options";
+  private static final String REQUIRED_KEY = "required";
 
   private String alias;
   private String name;
   private String deploymentId;
   private DeploymentState state = DeploymentState.UNKNOWN;
-  private int instances;
+  private DeploymentOptions deploymentOptions;
+  private boolean required = true;
 
   private ModuleDescriptor() {
     //Default constructor
   }
 
-  public ModuleDescriptor(ModuleDescriptor other) {
+  ModuleDescriptor(ModuleDescriptor other) {
     this.alias = other.alias;
     this.name = other.name;
     this.deploymentId = other.deploymentId;
     this.state = other.state;
-    this.instances = other.instances;
+    this.deploymentOptions = other.deploymentOptions;
+    this.required = other.required;
   }
 
-  public static ModuleDescriptor parse(String line) {
+  static ModuleDescriptor fromConfig(String modulesLine, JsonObject json) {
     ModuleDescriptor descriptor = new ModuleDescriptor();
-    int separatorIdx = line.indexOf(MODULE_ALIAS_SEPARATOR);
 
-    if (separatorIdx == -1) {
-      throw new IllegalArgumentException(
-          "Module '" + line + "'should have form of <alias>" + MODULE_ALIAS_SEPARATOR
-              + "<service>, e.g.: myAlias"
-              + MODULE_ALIAS_SEPARATOR + "com.acme.VerticleClassName");
-    }
-    descriptor.alias = line.substring(0, separatorIdx);
+    parseModulesLine(modulesLine, descriptor);
+    parseJson(json, descriptor);
 
-    String name = line.substring(separatorIdx + 1);
-    if (name.indexOf(':') != -1) {
-      descriptor.name = name;
-    } else {
-      descriptor.name = MODULE_DEFAULT_PREFIX + name;
-    }
     return descriptor;
   }
 
@@ -87,17 +87,24 @@ public class ModuleDescriptor {
     return state;
   }
 
-  public String toDescriptorLine() {
+  public DeploymentOptions getDeploymentOptions() {
+    return deploymentOptions;
+  }
+
+  public boolean isRequired() {
+    return required;
+  }
+
+  String toDescriptorLine() {
     return alias + MODULE_ALIAS_SEPARATOR + name;
   }
 
-  public int getInstances() {
-    return instances;
-  }
-
-  public ModuleDescriptor setInstances(int instances) {
-    this.instances = Integer.max(instances, 1);
-    return this;
+  String toLogEntry() {
+    return getState().getMessage()
+        + " " + deploymentOptions.getInstances() + " instance(s)"
+        + " of " + (required ? "required " : "optional ") + alias
+        + " (" + name + ")"
+        + (deploymentId != null ? " [" + deploymentId + "]" : "");
   }
 
   @Override
@@ -107,15 +114,56 @@ public class ModuleDescriptor {
         ", name='" + name + '\'' +
         ", deploymentId='" + deploymentId + '\'' +
         ", state=" + state +
-        ", instances=" + instances +
+        ", deploymentOptions=" + deploymentOptions +
+        ", required=" + required +
         '}';
+  }
+
+  private static void parseModulesLine(String modulesLine, ModuleDescriptor descriptor) {
+    int separatorIdx = modulesLine.indexOf(MODULE_ALIAS_SEPARATOR);
+
+    if (separatorIdx == -1) {
+      throw new IllegalArgumentException(
+          "Module '" + modulesLine + "'should have form of <alias>" + MODULE_ALIAS_SEPARATOR
+              + "<service>, e.g.: myAlias"
+              + MODULE_ALIAS_SEPARATOR + "com.acme.VerticleClassName");
+    }
+    descriptor.alias = modulesLine.substring(0, separatorIdx);
+
+    String name = modulesLine.substring(separatorIdx + 1);
+    if (name.indexOf(':') != -1) {
+      descriptor.name = name;
+    } else {
+      descriptor.name = MODULE_DEFAULT_PREFIX + name;
+    }
+  }
+
+  private static void parseJson(JsonObject json, ModuleDescriptor descriptor) {
+    descriptor.deploymentOptions = new DeploymentOptions();
+    if (json.containsKey(CONFIG_OVERRIDE)) {
+      if (json.getJsonObject(CONFIG_OVERRIDE).containsKey(descriptor.alias)) {
+        JsonObject moduleConfig = json.getJsonObject(CONFIG_OVERRIDE)
+            .getJsonObject(descriptor.alias);
+        if (moduleConfig.containsKey(MODULE_OPTIONS)) {
+          descriptor.deploymentOptions.fromJson(moduleConfig.getJsonObject(MODULE_OPTIONS));
+          descriptor.required = moduleConfig.getJsonObject(MODULE_OPTIONS)
+              .getBoolean(REQUIRED_KEY, true);
+        } else {
+          LOGGER.warn(
+              "Module '{}' has config, but missing 'options' object. "
+                  + "Default configuration is to be used", descriptor.alias);
+        }
+      } else {
+        LOGGER.warn("Module '{}' if not configured in the config file. Used default configuration",
+            descriptor.alias);
+      }
+    }
   }
 
   public enum DeploymentState {
     UNKNOWN("Unknown state"),
     SUCCESS("Deployed"),
-    FAILED_OPTIONAL("Failed to deploy optional"),
-    FAILED_REQUIRED("Failed to deploy required");
+    FAILED("Failed to deploy");
 
     private final String message;
 
@@ -123,9 +171,9 @@ public class ModuleDescriptor {
       this.message = message;
     }
 
-    @Override
-    public String toString() {
+    private String getMessage() {
       return message;
     }
+
   }
 }
