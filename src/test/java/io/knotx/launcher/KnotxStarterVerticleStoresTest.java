@@ -18,15 +18,16 @@ package io.knotx.launcher;
 import static io.knotx.launcher.util.DeploymentOptionsFactory.deploymentOptionsFromBootstrap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.launcher.TestVerticlesFactory.VerificationContext;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.file.FileSystemException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import java.util.function.Consumer;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -108,7 +109,11 @@ class KnotxStarterVerticleStoresTest {
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
             s -> testContext.failNow(new RuntimeException("This deployment should fail")),
-            throwable -> testContext.completeNow()
+            throwable -> {
+              assertTrue(throwable instanceof FileSystemException);
+              assertTrue(throwable.getMessage().contains("file-that-does-not-exists.conf"));
+              testContext.completeNow();
+            }
         );
   }
 
