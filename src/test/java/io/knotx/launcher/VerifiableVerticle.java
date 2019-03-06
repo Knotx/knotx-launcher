@@ -25,10 +25,16 @@ import java.util.function.Consumer;
 public class VerifiableVerticle implements Verticle {
 
   private Consumer<JsonObject> assertions;
+  private final boolean shouldFail;
   private Vertx vertx;
 
-  VerifiableVerticle(Consumer<JsonObject> assertions) {
+  VerifiableVerticle(Consumer<JsonObject> assertions, boolean shouldFail) {
     this.assertions = assertions;
+    this.shouldFail = shouldFail;
+  }
+
+  VerifiableVerticle(Consumer<JsonObject> assertions) {
+    this(assertions, false);
   }
 
   @Override
@@ -39,12 +45,18 @@ public class VerifiableVerticle implements Verticle {
   @Override
   public void init(Vertx vertx, Context context) {
     this.vertx = vertx;
-    assertions.accept(context.config());
+    if (assertions != null) {
+      assertions.accept(context.config());
+    }
   }
 
   @Override
   public void start(Future<Void> startFuture) {
-    startFuture.complete();
+    if (shouldFail) {
+      startFuture.fail("Start failed");
+    } else {
+      startFuture.complete();
+    }
   }
 
   @Override
