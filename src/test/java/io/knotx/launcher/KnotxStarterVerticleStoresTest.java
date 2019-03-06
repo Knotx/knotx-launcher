@@ -146,7 +146,6 @@ class KnotxStarterVerticleStoresTest {
   }
 
   @Test
-  @Disabled("Merging modules from multiple stores does not work")
   @DisplayName("Expect all modules deployed from several stores")
   void checkAllModulesDeployed(VertxTestContext testContext, Vertx vertx) {
     // given
