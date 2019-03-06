@@ -46,10 +46,10 @@ class KnotxStarterVerticleStoresTest {
         "multiple-stores/bootstrap/one-present-optional-store.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
-        .allVerticlesStarts(
+        .allVerticlesStart(
             VerificationContext.instance()
                 // then
-                .setAssertions(validateTestOptionValue("value-a"))
+                .setAssertions(validateTestOptionValue("testValue"))
                 .setTestContext(testContext))
     );
 
@@ -84,10 +84,10 @@ class KnotxStarterVerticleStoresTest {
         "multiple-stores/bootstrap/one-present-mandatory-store.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
-        .allVerticlesStarts(
+        .allVerticlesStart(
             VerificationContext.instance()
                 // then
-                .setAssertions(validateTestOptionValue("value-a"))
+                .setAssertions(validateTestOptionValue("testValue"))
                 .setTestContext(testContext))
     );
 
@@ -119,17 +119,54 @@ class KnotxStarterVerticleStoresTest {
   }
 
   @Test
-  @Disabled
   @DisplayName("Expect configuration overridden by second store")
   void checkConfigurationOverriding(VertxTestContext testContext, Vertx vertx) {
+    // given
+    DeploymentOptions options = fromBootstrapFile(
+        "multiple-stores/bootstrap/two-stores-with-overrides.json");
 
+    vertx.registerVerticleFactory(TestVerticlesFactory
+        .allVerticlesStart(
+            VerificationContext.instance()
+                // then
+                .setAssertions(jsonObject -> {
+                  assertEquals("testValue-overridden", jsonObject.getString(CONFIG_TEST_OPTION_KEY));
+                  assertEquals("knotx", jsonObject.getString("defaultOption"));
+                  assertEquals("rocks", jsonObject.getString("extraOption"));
+                })
+                .setTestContext(testContext))
+    );
+
+    // when
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.completeNow(),
+            testContext::failNow
+        );
   }
 
   @Test
-  @Disabled
+  @Disabled("Merging modules from multiple stores does not work")
   @DisplayName("Expect all modules deployed from several stores")
   void checkAllModulesDeployed(VertxTestContext testContext, Vertx vertx) {
+    // given
+    DeploymentOptions options = fromBootstrapFile(
+        "multiple-stores/bootstrap/three-stores-mandatory.json");
 
+    vertx.registerVerticleFactory(TestVerticlesFactory
+        .allVerticlesStart(
+            VerificationContext.instance()
+                // then
+                .setAssertions(validateTestOptionValue("testValue"))
+                .setTestContext(testContext))
+    );
+
+    // when
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            success -> testContext.completeNow(),
+            testContext::failNow
+        );
   }
 
   private Consumer<JsonObject> validateTestOptionValue(String expectedValue) {

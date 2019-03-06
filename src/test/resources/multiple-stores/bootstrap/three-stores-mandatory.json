@@ -8,15 +8,23 @@
         "config": {
           "path": "multiple-stores/application-A.conf"
         },
-        "optional": true
+        "optional": false
       },
       {
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "multiple-stores/application-A-override.conf"
+          "path": "multiple-stores/application-B.conf"
         },
-        "optional": true
+        "optional": false
+      },
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "multiple-stores/application-C.conf"
+        },
+        "optional": false
       }
     ]
   }

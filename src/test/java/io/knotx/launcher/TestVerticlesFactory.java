@@ -41,11 +41,11 @@ public class TestVerticlesFactory implements VerticleFactory {
     this.shouldVerticleFail = shouldVerticleFail;
   }
 
-  static TestVerticlesFactory allVerticlesStarts(VerificationContext verificationContext) {
+  static TestVerticlesFactory allVerticlesStart(VerificationContext verificationContext) {
     return new TestVerticlesFactory(verificationContext, EVERY_VERTICLE_STARTS);
   }
 
-  static TestVerticlesFactory allVerticlesFails() {
+  static TestVerticlesFactory allVerticlesFail() {
     return new TestVerticlesFactory(VerificationContext.instance(), EVERY_VERTICLE_FAILS);
   }
 
@@ -83,11 +83,11 @@ public class TestVerticlesFactory implements VerticleFactory {
       return new VerificationContext();
     }
 
-    public VertxTestContext getTestContext() {
+    VertxTestContext getTestContext() {
       return testContext;
     }
 
-    public VerificationContext setTestContext(VertxTestContext testContext) {
+    VerificationContext setTestContext(VertxTestContext testContext) {
       this.testContext = testContext;
       return this;
     }
@@ -96,8 +96,7 @@ public class TestVerticlesFactory implements VerticleFactory {
       return assertions;
     }
 
-    VerificationContext setAssertions(
-        Consumer<JsonObject> assertions) {
+    VerificationContext setAssertions(Consumer<JsonObject> assertions) {
       this.assertions = assertions;
       return this;
     }

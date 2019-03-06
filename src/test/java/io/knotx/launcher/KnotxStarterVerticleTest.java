@@ -55,7 +55,7 @@ class KnotxStarterVerticleTest {
     DeploymentOptions options = fromBootstrapFile("simple/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
-        .allVerticlesStarts(
+        .allVerticlesStart(
             VerificationContext.instance()
                 .setAssertions(jsonObject -> {
                   // then
@@ -80,7 +80,7 @@ class KnotxStarterVerticleTest {
     DeploymentOptions options = fromBootstrapFile("system/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
-        .allVerticlesStarts(
+        .allVerticlesStart(
             VerificationContext.instance()
                 .setAssertions(jsonObject -> {
                   // then
@@ -105,7 +105,7 @@ class KnotxStarterVerticleTest {
     DeploymentOptions options = fromBootstrapFile("complex/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
-        .allVerticlesStarts(
+        .allVerticlesStart(
             VerificationContext.instance()
                 .setAssertions(jsonObject -> {
                   // then

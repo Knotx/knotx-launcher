@@ -37,7 +37,7 @@ class RequiredModulesOptionTest {
     DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE,
         "one-module-one-instance.conf");
 
-    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFails());
+    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFail());
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -71,7 +71,7 @@ class RequiredModulesOptionTest {
     DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE,
         "one-module-one-instance-optional.conf");
 
-    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFails());
+    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFail());
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -123,7 +123,7 @@ class RequiredModulesOptionTest {
     DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE,
         "three-modules-optional.conf");
 
-    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFails());
+    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFail());
 
     // then
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
