@@ -15,7 +15,7 @@
  */
 package io.knotx.launcher;
 
-import static io.knotx.launcher.util.DeploymentOptionsFactory.deploymentOptionsFromBootstrap;
+import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +28,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +42,7 @@ class KnotxStarterVerticleStoresTest {
   @DisplayName("Expect instance running, when starting with one optional and present store")
   void startWithOneOptionalPresentStore(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap(
+    DeploymentOptions options = fromBootstrapFile(
         "multiple-stores/bootstrap/one-present-optional-store.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
@@ -64,7 +65,7 @@ class KnotxStarterVerticleStoresTest {
   @DisplayName("Expect instance running, when starting with one optional and missing store")
   void startWithOneOptionalMissingStore(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap(
+    DeploymentOptions options = fromBootstrapFile(
         "multiple-stores/bootstrap/one-missing-optional-store.json");
 
     // when
@@ -79,7 +80,7 @@ class KnotxStarterVerticleStoresTest {
   @DisplayName("Expect instance running, when starting with one not-optional and present store")
   void startWithOneMandatoryPresentStore(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap(
+    DeploymentOptions options = fromBootstrapFile(
         "multiple-stores/bootstrap/one-present-mandatory-store.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
@@ -102,7 +103,7 @@ class KnotxStarterVerticleStoresTest {
   @DisplayName("Expect instance failing, when starting with one non-optional and missing store")
   void startWithOneMandatoryMissingStore(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap(
+    DeploymentOptions options = fromBootstrapFile(
         "multiple-stores/bootstrap/one-missing-mandatory-store.json");
 
     // when
@@ -115,6 +116,20 @@ class KnotxStarterVerticleStoresTest {
               testContext.completeNow();
             }
         );
+  }
+
+  @Test
+  @Disabled
+  @DisplayName("Expect configuration overridden by second store")
+  void checkConfigurationOverriding(VertxTestContext testContext, Vertx vertx) {
+
+  }
+
+  @Test
+  @Disabled
+  @DisplayName("Expect all modules deployed from several stores")
+  void checkAllModulesDeployed(VertxTestContext testContext, Vertx vertx) {
+
   }
 
   private Consumer<JsonObject> validateTestOptionValue(String expectedValue) {

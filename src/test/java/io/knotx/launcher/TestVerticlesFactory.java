@@ -20,21 +20,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.VerticleFactory;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class TestVerticlesFactory implements VerticleFactory {
 
-  private static final Function<Integer, Boolean> EVERY_VERTICLE_STARTS = i -> false;
-  private static final Function<Integer, Boolean> EVERY_VERTICLE_FAILS = i -> true;
-  private static final Function<Integer, Boolean> EVERY_SECOND_VERTICLE_FAILS = i -> i % 2 == 0;
+  private static final BiFunction<Integer, String, Boolean> EVERY_VERTICLE_STARTS = (i, name) -> false;
+  private static final BiFunction<Integer, String, Boolean> EVERY_VERTICLE_FAILS = (i, name) -> true;
+  private static final BiFunction<Integer, String, Boolean> EVERY_SECOND_VERTICLE_FAILS = (i, name) -> i % 2 == 0;
+  private static final BiFunction<Integer, String, Boolean> FAIL_BY_NAME = (i, name) -> name.endsWith("fail");
 
   private final AtomicInteger count = new AtomicInteger();
-  private final Function<Integer, Boolean> shouldVerticleFail;
+  private final BiFunction<Integer, String, Boolean> shouldVerticleFail;
   private final VerificationContext verificationContext;
+  private
 
   TestVerticlesFactory(VerificationContext verificationContext,
-      Function<Integer, Boolean> shouldVerticleFail) {
+      BiFunction<Integer, String, Boolean> shouldVerticleFail) {
     this.verificationContext = verificationContext;
     this.shouldVerticleFail = shouldVerticleFail;
   }
@@ -51,6 +53,10 @@ public class TestVerticlesFactory implements VerticleFactory {
     return new TestVerticlesFactory(VerificationContext.instance(), EVERY_SECOND_VERTICLE_FAILS);
   }
 
+  static TestVerticlesFactory everyWithFailPostfixInNameFails() {
+    return new TestVerticlesFactory(VerificationContext.instance(), FAIL_BY_NAME);
+  }
+
   @Override
   public String prefix() {
     return "test";
@@ -65,7 +71,7 @@ public class TestVerticlesFactory implements VerticleFactory {
               .verify(() -> verificationContext.getAssertions().accept(jsonObject));
     }
     return new VerifiableVerticle(checkedAssertions,
-        shouldVerticleFail.apply(count.getAndIncrement()));
+        shouldVerticleFail.apply(count.getAndIncrement(), verticleName));
   }
 
   static class VerificationContext {

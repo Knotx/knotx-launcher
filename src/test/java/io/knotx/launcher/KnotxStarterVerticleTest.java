@@ -15,7 +15,7 @@
  */
 package io.knotx.launcher;
 
-import static io.knotx.launcher.util.DeploymentOptionsFactory.deploymentOptionsFromBootstrap;
+import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -37,7 +37,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Example with empty modules starts successfully.")
   void startWithNoModules(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("bootstrap.json");
+    DeploymentOptions options = fromBootstrapFile("bootstrap.json");
 
     // when
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
@@ -52,7 +52,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a property defined in the application.conf file.")
   void startModuleWithConfiguredOption(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("simple/bootstrap.json");
+    DeploymentOptions options = fromBootstrapFile("simple/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStarts(
@@ -77,7 +77,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a property defined in system properties.")
   void startModuleWithSystemPropertyValue(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("system/bootstrap.json");
+    DeploymentOptions options = fromBootstrapFile("system/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStarts(
@@ -102,7 +102,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a configuration included from a separate file.")
   void startModuleWithIncludes(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("complex/bootstrap.json");
+    DeploymentOptions options = fromBootstrapFile("complex/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStarts(
@@ -123,69 +123,4 @@ class KnotxStarterVerticleTest {
         );
   }
 
-  @Test
-  @DisplayName("Deploy single failing module and expect instance start fails by default.")
-  void failStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
-    // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("failing/default/bootstrap.json");
-
-    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFails());
-
-    // then
-    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
-        .subscribe(
-            success -> testContext.failNow(new RuntimeException("This test should fail")),
-            throwable -> testContext.completeNow()
-        );
-  }
-
-  @Test
-  @DisplayName("Deploy multiple modules when some are failing and expect instance start fails by default.")
-  void failStartWhenAnyModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
-    // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("failing/multiple/bootstrap.json");
-
-    vertx.registerVerticleFactory(TestVerticlesFactory.everySecondVerticleFails());
-
-    // then
-    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
-        .subscribe(
-            success -> testContext.failNow(new RuntimeException("This test should fail")),
-            throwable -> testContext.completeNow()
-        );
-  }
-
-  @Test
-  @DisplayName("Deploy failing module marked as not required and expect instance start successfully.")
-  void successStartWhenModuleDeploymentFails(VertxTestContext testContext, Vertx vertx) {
-    // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap("failing/optional/bootstrap.json");
-
-    vertx.registerVerticleFactory(TestVerticlesFactory.allVerticlesFails());
-
-    // then
-    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
-        .subscribe(
-            success -> testContext.completeNow(),
-            testContext::failNow
-        );
-  }
-
-  @Test
-  @DisplayName("Deploy multiple instances of failing module marked as not required and expect instance start successfully.")
-  void successStartWhenModuleDeploymentFailsWithThreeInstances(VertxTestContext testContext,
-      Vertx vertx) {
-    // given
-    DeploymentOptions options = deploymentOptionsFromBootstrap(
-        "failing/multiple-optional/bootstrap.json");
-
-    vertx.registerVerticleFactory(TestVerticlesFactory.everySecondVerticleFails());
-
-    // then
-    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
-        .subscribe(
-            success -> testContext.completeNow(),
-            testContext::failNow
-        );
-  }
 }
