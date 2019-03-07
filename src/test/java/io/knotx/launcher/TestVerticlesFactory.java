@@ -33,9 +33,8 @@ public class TestVerticlesFactory implements VerticleFactory {
   private final AtomicInteger count = new AtomicInteger();
   private final BiFunction<Integer, String, Boolean> shouldVerticleFail;
   private final VerificationContext verificationContext;
-  private
 
-  TestVerticlesFactory(VerificationContext verificationContext,
+  private TestVerticlesFactory(VerificationContext verificationContext,
       BiFunction<Integer, String, Boolean> shouldVerticleFail) {
     this.verificationContext = verificationContext;
     this.shouldVerticleFail = shouldVerticleFail;
@@ -60,6 +59,10 @@ public class TestVerticlesFactory implements VerticleFactory {
   @Override
   public String prefix() {
     return "test";
+  }
+
+  int getDeployedVerticlesCount() {
+    return count.get();
   }
 
   @Override

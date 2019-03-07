@@ -28,7 +28,6 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 import java.util.function.Consumer;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -130,7 +129,8 @@ class KnotxStarterVerticleStoresTest {
             VerificationContext.instance()
                 // then
                 .setAssertions(jsonObject -> {
-                  assertEquals("testValue-overridden", jsonObject.getString(CONFIG_TEST_OPTION_KEY));
+                  assertEquals("testValue-overridden",
+                      jsonObject.getString(CONFIG_TEST_OPTION_KEY));
                   assertEquals("knotx", jsonObject.getString("defaultOption"));
                   assertEquals("rocks", jsonObject.getString("extraOption"));
                 })
@@ -152,18 +152,23 @@ class KnotxStarterVerticleStoresTest {
     DeploymentOptions options = fromBootstrapFile(
         "multiple-stores/bootstrap/three-stores-mandatory.json");
 
-    vertx.registerVerticleFactory(TestVerticlesFactory
+    TestVerticlesFactory factory = TestVerticlesFactory
         .allVerticlesStart(
             VerificationContext.instance()
                 // then
                 .setAssertions(validateTestOptionValue("testValue"))
-                .setTestContext(testContext))
-    );
+                .setTestContext(testContext));
+    vertx.registerVerticleFactory(factory);
 
     // when
     vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
         .subscribe(
-            success -> testContext.completeNow(),
+            success -> {
+              testContext.verify(() -> {
+                assertEquals(3, factory.getDeployedVerticlesCount());
+              });
+              testContext.completeNow();
+            },
             testContext::failNow
         );
   }

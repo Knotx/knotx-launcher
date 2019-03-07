@@ -16,6 +16,7 @@
 package io.knotx.launcher;
 
 import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapFile;
+import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapTemplate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -31,7 +32,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class KnotxStarterVerticleTest {
 
+  private static final String BOOTSTRAP_TEMPLATE = "simple/bootstrap.json";
   private static final String MY_VALUE_KEY = "myValueKey";
+
+  @Test
+  @DisplayName("Unsupported Knot.x 1.0 format validation")
+  void startWithInvalidModules(VertxTestContext testContext, Vertx vertx) {
+    // given
+    DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE, "invalid.conf");
+
+    // when
+    vertx.rxDeployVerticle(KnotxStarterVerticle.class.getName(), options)
+        .subscribe(
+            // then
+            success -> testContext.failNow(new RuntimeException("This deployment should fail")),
+            error -> testContext.completeNow()
+        );
+  }
 
   @Test
   @DisplayName("Example with empty modules starts successfully.")
@@ -52,7 +69,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a property defined in the application.conf file.")
   void startModuleWithConfiguredOption(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = fromBootstrapFile("simple/bootstrap.json");
+    DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE, "simple.conf");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStart(
@@ -77,7 +94,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a property defined in system properties.")
   void startModuleWithSystemPropertyValue(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = fromBootstrapFile("system/bootstrap.json");
+    DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE, "system.conf");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStart(
@@ -102,7 +119,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a configuration included from a separate file.")
   void startModuleWithIncludes(VertxTestContext testContext, Vertx vertx) {
     // given
-    DeploymentOptions options = fromBootstrapFile("complex/bootstrap.json");
+    DeploymentOptions options = fromBootstrapTemplate(BOOTSTRAP_TEMPLATE, "complex.conf");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStart(

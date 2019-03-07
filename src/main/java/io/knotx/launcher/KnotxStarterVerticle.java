@@ -23,20 +23,23 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.config.ConfigRetriever;
 import io.vertx.reactivex.core.AbstractVerticle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class KnotxStarterVerticle extends AbstractVerticle {
 
-  private static final String MODULES_ARRAY = "modules";
+  private static final String MODULES_KEY = "modules";
   private static final Logger LOGGER = LoggerFactory.getLogger(KnotxStarterVerticle.class);
   private static final String FILE_STORE = "file";
   private static final String KNOTX_HOME_PROPERTY = "knotx.home";
@@ -127,9 +130,9 @@ public class KnotxStarterVerticle extends AbstractVerticle {
 
   private void deployVerticles(JsonObject config, Future<Void> completion) {
     LOGGER.info("STARTING Knot.x {} @ {}", Version.getVersion(), Version.getBuildTime());
-    Observable.fromIterable(getModulesFromConfigOrEmptyArray(config))
-        .cast(String.class)
-        .map(modulesLine -> ModuleDescriptor.fromConfig(modulesLine, config))
+    Observable.just(config)
+        .flatMap(c -> Observable.fromIterable(getModulesFromConfigOrEmpty(c)))
+        .map(entry -> ModuleDescriptor.fromConfig(entry.getKey(), entry.getValue(), config))
         .flatMap(this::deployVerticle)
         .reduce(new ArrayList<ModuleDescriptor>(), (accumulator, item) -> {
           accumulator.add(item);
@@ -159,8 +162,22 @@ public class KnotxStarterVerticle extends AbstractVerticle {
         );
   }
 
-  private JsonArray getModulesFromConfigOrEmptyArray(JsonObject config) {
-    return Optional.ofNullable(config.getJsonArray(MODULES_ARRAY)).orElse(new JsonArray());
+  private Set<Entry<String, String>> getModulesFromConfigOrEmpty(JsonObject config) {
+    Object modulesObject = config.getMap().get(MODULES_KEY);
+    if (isModulesPropertyValid(modulesObject)) {
+      Optional<JsonObject> jsonObject = Optional.ofNullable(config.getJsonObject(MODULES_KEY));
+      return jsonObject.map(json -> json.getMap().entrySet().stream().collect(Collectors.toMap(
+          Entry::getKey, e -> String.valueOf(e.getValue()))))
+          .orElse(Collections.emptyMap()).entrySet();
+    } else {
+      throw new IllegalStateException(
+          "\"modules\" property defined in the configuration should be a JsonObject");
+    }
+  }
+
+  private boolean isModulesPropertyValid(Object modulesObject) {
+    return modulesObject == null || modulesObject instanceof Map
+        || modulesObject instanceof JsonObject;
   }
 
   private boolean anyRequiredModuleFailed(List<ModuleDescriptor> deployedModules) {
@@ -176,7 +193,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
                 .setDeploymentId(deployId)
                 .setState(DeploymentState.SUCCESS))
         .doOnError(error ->
-            LOGGER.error("Can't deploy {}: {}", module.toDescriptorLine(), error))
+            LOGGER.error("Can't deploy {}={}", module.getAlias(), module.getName(), error))
         .onErrorResumeNext(
             (err) -> Single.just(new ModuleDescriptor(module).setState(DeploymentState.FAILED)))
         .toObservable();
