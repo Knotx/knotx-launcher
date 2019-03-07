@@ -17,6 +17,7 @@ package io.knotx.launcher;
 
 import com.google.common.collect.Lists;
 import io.knotx.launcher.ModuleDescriptor.DeploymentState;
+import io.knotx.launcher.exception.ModulesUnsupportedSyntaxException;
 import io.knotx.launcher.helper.LogoPrintHelper;
 import io.knotx.launcher.property.SystemProperties;
 import io.reactivex.Observable;
@@ -170,8 +171,9 @@ public class KnotxStarterVerticle extends AbstractVerticle {
           Entry::getKey, e -> String.valueOf(e.getValue()))))
           .orElse(Collections.emptyMap()).entrySet();
     } else {
-      throw new IllegalStateException(
-          "\"modules\" property defined in the configuration should be a JsonObject");
+      throw new ModulesUnsupportedSyntaxException(config);
+//      throw new Modules(
+//          "\"modules\" property defined in the configuration should be a JsonObject");
     }
   }
 

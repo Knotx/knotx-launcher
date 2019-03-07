@@ -19,8 +19,10 @@ import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapFile;
 import static io.knotx.launcher.util.DeploymentOptionsFactory.fromBootstrapTemplate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.knotx.launcher.TestVerticlesFactory.VerificationContext;
+import io.knotx.launcher.exception.ModulesUnsupportedSyntaxException;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -46,7 +48,12 @@ class KnotxStarterVerticleTest {
         .subscribe(
             // then
             success -> testContext.failNow(new RuntimeException("This deployment should fail")),
-            error -> testContext.completeNow()
+            error -> {
+              testContext.verify(() -> {
+                assertTrue(error instanceof ModulesUnsupportedSyntaxException);
+              });
+              testContext.completeNow();
+            }
         );
   }
 
