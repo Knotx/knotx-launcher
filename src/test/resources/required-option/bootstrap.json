@@ -6,7 +6,7 @@
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "failing/multiple/application.conf"
+          "path": "required-option/PATH_TO_CONFIG_FILE"
         },
         "optional": false
       }

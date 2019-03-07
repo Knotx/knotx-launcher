@@ -6,7 +6,7 @@
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "failing/default/application.conf"
+          "path": "file-that-does-not-exists.conf"
         },
         "optional": false
       }

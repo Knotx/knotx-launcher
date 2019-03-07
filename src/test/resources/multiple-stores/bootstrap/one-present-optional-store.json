@@ -6,9 +6,9 @@
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "system/application.conf"
+          "path": "multiple-stores/application-A.conf"
         },
-        "optional": false
+        "optional": true
       }
     ]
   }
