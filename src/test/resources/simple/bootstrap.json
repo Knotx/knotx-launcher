@@ -6,7 +6,7 @@
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "simple/application.conf"
+          "path": "simple/PATH_TO_CONFIG_FILE"
         },
         "optional": false
       }

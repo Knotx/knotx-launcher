@@ -126,15 +126,16 @@ from JSON, but make it more convenient as a human-editable config file format. N
 from JSON are comments, variables and includes.
 
 The structure of the file is composed on the following sections:
-- `modules` - an array of Verticles to start
+- `modules` - a map of Verticles to start
 - `config` - actual configuration for the given Verticle.
 
 ```hocon
 ########### Modules to start ###########
-modules = [
-  "myserver=io.knotx.server.KnotxServerVerticle"
+modules {
+  # alias = verticle class name
+  myserver = "io.knotx.server.KnotxServerVerticle"
   # Other modules to start
-]
+}
 
 ########### Modules configurations ###########
 config.myserver {
@@ -148,7 +149,7 @@ config.myserver {
 ```
 
 The `config` section for each module is expected to have following structure: `MODULE_ALIAS.options.config`, where:
-- `MODULE_ALIAS` is exactly the same alias that was used in the `modules` array (`myserver` for the 
+- `MODULE_ALIAS` is exactly the same alias that was used in the `modules` JSON object (`myserver` for the 
 example above),
 - `options` object carries-on configuration called DeploymentOptions for a given verticle.
 It allows you to control the verticle behaviour, such as how many instances, classpath isolation, 

@@ -24,8 +24,7 @@ public class ModuleDescriptor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ModuleDescriptor.class);
 
-  public static final String MODULE_DEFAULT_PREFIX = "java:";
-  public static final char MODULE_ALIAS_SEPARATOR = '=';
+  private static final String MODULE_DEFAULT_PREFIX = "java:";
 
   private static final String CONFIG_OVERRIDE = "config";
   private static final String MODULE_OPTIONS = "options";
@@ -38,8 +37,13 @@ public class ModuleDescriptor {
   private DeploymentOptions deploymentOptions;
   private boolean required = true;
 
-  private ModuleDescriptor() {
-    //Default constructor
+  private ModuleDescriptor(String alias, String name) {
+    this.alias = alias;
+    if (name.indexOf(':') != -1) {
+      this.name = name;
+    } else {
+      this.name = MODULE_DEFAULT_PREFIX + name;
+    }
   }
 
   ModuleDescriptor(ModuleDescriptor other) {
@@ -51,12 +55,9 @@ public class ModuleDescriptor {
     this.required = other.required;
   }
 
-  static ModuleDescriptor fromConfig(String modulesLine, JsonObject json) {
-    ModuleDescriptor descriptor = new ModuleDescriptor();
-
-    parseModulesLine(modulesLine, descriptor);
+  static ModuleDescriptor fromConfig(String alias, String name, JsonObject json) {
+    ModuleDescriptor descriptor = new ModuleDescriptor(alias, name);
     parseJson(json, descriptor);
-
     return descriptor;
   }
 
@@ -95,10 +96,6 @@ public class ModuleDescriptor {
     return required;
   }
 
-  String toDescriptorLine() {
-    return alias + MODULE_ALIAS_SEPARATOR + name;
-  }
-
   String toLogEntry() {
     return getState().getMessage()
         + " " + deploymentOptions.getInstances() + " instance(s)"
@@ -117,25 +114,6 @@ public class ModuleDescriptor {
         ", deploymentOptions=" + deploymentOptions +
         ", required=" + required +
         '}';
-  }
-
-  private static void parseModulesLine(String modulesLine, ModuleDescriptor descriptor) {
-    int separatorIdx = modulesLine.indexOf(MODULE_ALIAS_SEPARATOR);
-
-    if (separatorIdx == -1) {
-      throw new IllegalArgumentException(
-          "Module '" + modulesLine + "'should have form of <alias>" + MODULE_ALIAS_SEPARATOR
-              + "<service>, e.g.: myAlias"
-              + MODULE_ALIAS_SEPARATOR + "com.acme.VerticleClassName");
-    }
-    descriptor.alias = modulesLine.substring(0, separatorIdx);
-
-    String name = modulesLine.substring(separatorIdx + 1);
-    if (name.indexOf(':') != -1) {
-      descriptor.name = name;
-    } else {
-      descriptor.name = MODULE_DEFAULT_PREFIX + name;
-    }
   }
 
   private static void parseJson(JsonObject json, ModuleDescriptor descriptor) {
