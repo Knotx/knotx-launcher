@@ -87,18 +87,18 @@ sourceSets.create("junitTest") {
 // -----------------------------------------------------------------------------
 tasks {
     //FIXME there is race condition with copying Version to generated and compiling project
-    register<Copy>("templatesProcessing") {
-        val now = Date().time
-        val tokens = mapOf("project.version" to project.version, "build.timestamp" to "${now}")
-        inputs.properties(tokens)
-
-        from("src/main/java-templates") {
-            include("*.java")
-            filter<ReplaceTokens>("tokens" to tokens)
-        }
-        into("src/main/generated/io/knotx/launcher")
-    }
-    getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
+//    register<Copy>("templatesProcessing") {
+//        val now = Date().time
+//        val tokens = mapOf("project.version" to project.version, "build.timestamp" to "${now}")
+//        inputs.properties(tokens)
+//
+//        from("src/main/java-templates") {
+//            include("*.java")
+//            filter<ReplaceTokens>("tokens" to tokens)
+//        }
+//        into("src/main/generated/io/knotx/launcher")
+//    }
+//    getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
         excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*", ".vertx/*")

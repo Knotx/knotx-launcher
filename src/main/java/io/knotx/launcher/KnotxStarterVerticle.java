@@ -130,7 +130,7 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   }
 
   private void deployVerticles(JsonObject config, Future<Void> completion) {
-    LOGGER.info("STARTING Knot.x {} @ {}", Version.getVersion(), Version.getBuildTime());
+    LOGGER.info("STARTING Knot.x");
     Observable.just(config)
         .flatMap(c -> Observable.fromIterable(getModulesFromConfigOrEmpty(c)))
         .map(entry -> ModuleDescriptor.fromConfig(entry.getKey(), entry.getValue(), config))
