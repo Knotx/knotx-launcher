@@ -41,7 +41,6 @@ defaultTasks("distZip")
 // Dependencies
 // -----------------------------------------------------------------------------
 configurations {
-    create("junitTestCompile").extendsFrom(configurations.getByName("testImplementation"))
     create("distConfig").extendsFrom(configurations.getByName("runtimeClasspath"))
 }
 
@@ -77,9 +76,6 @@ sourceSets.named("main") {
 }
 sourceSets.named("test") {
     resources.srcDir("conf")
-}
-sourceSets.create("junitTest") {
-    compileClasspath += sourceSets.named("main").get().output
 }
 
 // -----------------------------------------------------------------------------
@@ -140,10 +136,6 @@ tasks.named<Javadoc>("javadoc") {
         (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
-tasks.register<Jar>("testJar") {
-    from(sourceSets.named("junitTest").get().output)
-    classifier = "tests"
-}
 tasks.register<Zip>("distZip") {
     from("$buildDir/dist")
 }
@@ -156,7 +148,6 @@ publishing {
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
-            artifact(tasks["testJar"])
             artifact(tasks["distZip"])
             pom {
                 name.set("Knot.x Launcher")
