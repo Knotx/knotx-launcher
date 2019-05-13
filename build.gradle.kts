@@ -56,7 +56,6 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
 
-    testImplementation(group = "io.knotx", name = "knotx-junit5")
     testImplementation(group = "io.vertx", name = "vertx-junit5")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params")

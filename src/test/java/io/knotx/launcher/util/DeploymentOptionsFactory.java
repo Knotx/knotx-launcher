@@ -15,9 +15,11 @@
  */
 package io.knotx.launcher.util;
 
-import io.knotx.junit5.util.FileReader;
+import com.google.common.io.Resources;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public final class DeploymentOptionsFactory {
 
@@ -26,15 +28,23 @@ public final class DeploymentOptionsFactory {
   }
 
   public static DeploymentOptions fromBootstrapFile(String bootstrapPath) {
-    String storesConfig = FileReader.readTextSafe(bootstrapPath);
+    String storesConfig = readTextSafe(bootstrapPath);
     return new DeploymentOptions().setConfig(new JsonObject(storesConfig));
   }
 
   public static DeploymentOptions fromBootstrapTemplate(String bootstrapTemplatePath,
       String storeConfigPath) {
-    String storesConfigTemplate = FileReader.readTextSafe(bootstrapTemplatePath);
+    String storesConfigTemplate = readTextSafe(bootstrapTemplatePath);
     return new DeploymentOptions().setConfig(
         new JsonObject(storesConfigTemplate.replaceAll("PATH_TO_CONFIG_FILE", storeConfigPath)));
+  }
+
+  static String readTextSafe(String path) {
+    try {
+      return Resources.toString(Resources.getResource(path), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Could not load text from [" + path + "]");
+    }
   }
 
 }
