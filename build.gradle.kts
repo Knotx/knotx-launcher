@@ -50,6 +50,7 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-rx-java2")
     implementation(group = "io.vertx", name = "vertx-config")
     implementation(group = "io.vertx", name = "vertx-config-hocon")
+    implementation(group = "com.typesafe", name = "config")
     
     implementation(group = "ch.qos.logback", name = "logback-classic")
 
