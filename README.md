@@ -3,7 +3,7 @@
 Knot.x Launcher provides a way to configure and run **bare** Knot.x instance. It contains:
 - the `run-knotx` starting command that runs a Vert.x instance and deploys all configured modules 
 - instance configuration files
-- logger configuration files
+- [logger configuration files](#logback-settings)
 - distribution that contains all above and minimal set of dependencies (jar files in the `lib` directory) required to start the instance
 
 It is used in the [Knot.x Stack](https://github.com/Knotx/knotx-stack) to deliver fully functional 
@@ -204,3 +204,7 @@ E.g. you can configure default value directly in the application.conf and custom
 someField = 1234
 someField = ${?my.field.value}
 ```
+
+### Logback settings
+Knot.x Launcher module contains default [logback settings](https://github.com/Knotx/knotx-launcher/tree/master/src/main/resources/io/knotx/logging/logback)
+in the `resources`, to provide default logger configuration for the instances.
