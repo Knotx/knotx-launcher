@@ -123,6 +123,11 @@ tasks {
 // -----------------------------------------------------------------------------
 // Publication
 // -----------------------------------------------------------------------------
+tasks.register<Zip>("distZip") {
+    from("$buildDir/dist")
+}
+tasks.getByName("distZip").dependsOn("dist")
+
 publishing {
     publications {
         withType(MavenPublication::class) {
