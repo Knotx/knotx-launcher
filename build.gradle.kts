@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import org.apache.tools.ant.filters.ReplaceTokens
 import org.nosphere.apache.rat.RatTask
-import java.util.*
+
+group = "io.knotx"
+defaultTasks("distZip")
+
+plugins {
+    `java-library`
+    id("io.knotx.java-library") version "0.1.0"
+    id("io.knotx.maven-publish") version "0.1.0"
+    id("io.knotx.jacoco") version "0.1.0"
+
+    id("org.nosphere.apache.rat") version "0.4.0"
+}
 
 repositories {
+    jcenter()
     mavenLocal()
     maven { url = uri("https://plugins.gradle.org/m2/") }
     maven { url = uri("http://repo1.maven.org/maven2") }
     maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
     maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
 }
-
-plugins {
-    id("java-library")
-    id("maven-publish")
-    id("signing")
-    id("jacoco")
-    id("org.nosphere.apache.rat") version "0.4.0"
-}
-
-group = "io.knotx"
-defaultTasks("distZip")
 
 // -----------------------------------------------------------------------------
 // Dependencies
@@ -51,7 +51,7 @@ dependencies {
     implementation(group = "io.vertx", name = "vertx-config")
     implementation(group = "io.vertx", name = "vertx-config-hocon")
     implementation(group = "com.typesafe", name = "config")
-    
+
     implementation(group = "ch.qos.logback", name = "logback-classic")
 
     implementation(group = "org.apache.commons", name = "commons-lang3")
@@ -123,19 +123,6 @@ tasks {
 // -----------------------------------------------------------------------------
 // Publication
 // -----------------------------------------------------------------------------
-tasks.register<Jar>("sourcesJar") {
-    from(sourceSets.named("main").get().allJava)
-    classifier = "sources"
-}
-tasks.register<Jar>("javadocJar") {
-    from(tasks.named<Javadoc>("javadoc"))
-    classifier = "javadoc"
-}
-tasks.named<Javadoc>("javadoc") {
-    if (JavaVersion.current().isJava9Compatible) {
-        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    }
-}
 tasks.register<Zip>("distZip") {
     from("$buildDir/dist")
 }
@@ -143,69 +130,10 @@ tasks.getByName("distZip").dependsOn("dist")
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "knotx-launcher"
+        withType(MavenPublication::class) {
             from(components["java"])
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
-            artifact(tasks["distZip"])
-            pom {
-                name.set("Knot.x Launcher")
-                description.set("Knot.x Launcher - deploys all Knot.x modules in Vert.x instance.")
-                url.set("http://knotx.io")
-                licenses {
-                    license {
-                        name.set("The Apache Software License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("marcinczeczko")
-                        name.set("Marcin Czeczko")
-                        email.set("https://github.com/marcinczeczko")
-                    }
-                    developer {
-                        id.set("skejven")
-                        name.set("Maciej Laskowski")
-                        email.set("https://github.com/Skejven")
-                    }
-                    developer {
-                        id.set("tomaszmichalak")
-                        name.set("Tomasz Michalak")
-                        email.set("https://github.com/tomaszmichalak")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/Knotx/knotx-launcher.git")
-                    developerConnection.set("scm:git:ssh://github.com:Knotx/knotx-launcher.git")
-                    url.set("http://knotx.io")
-                }
-            }
-        }
-        repositories {
-            maven {
-                val releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-                val snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-                url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-                credentials {
-                    username = if (project.hasProperty("ossrhUsername")) project.property("ossrhUsername")?.toString() else "UNKNOWN"
-                    password = if (project.hasProperty("ossrhPassword")) project.property("ossrhPassword")?.toString() else "UNKNOWN"
-                    println("Connecting with user: ${username}")
-                }
-            }
         }
     }
 }
-val subProjectPath = this.path
-signing {
-    setRequired {
-        gradle.taskGraph.hasTask("$subProjectPath:publish") ||
-                gradle.taskGraph.hasTask("$subProjectPath:publishMavenJavaPublicationToMavenRepository")
-    }
-
-    sign(publishing.publications["mavenJava"])
-}
-
-apply(from = "gradle/javaAndUnitTests.gradle.kts")
-apply(from = "gradle/jacoco.gradle.kts")
