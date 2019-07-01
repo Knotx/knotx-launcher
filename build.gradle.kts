@@ -21,9 +21,9 @@ defaultTasks("distZip")
 
 plugins {
     `java-library`
-    id("io.knotx.java-library") version "0.1.0"
-    id("io.knotx.maven-publish") version "0.1.0"
-    id("io.knotx.jacoco") version "0.1.0"
+    id("io.knotx.java-library") version "0.1.1"
+    id("io.knotx.maven-publish") version "0.1.1"
+    id("io.knotx.jacoco") version "0.1.1"
 
     id("org.nosphere.apache.rat") version "0.4.0"
 }
