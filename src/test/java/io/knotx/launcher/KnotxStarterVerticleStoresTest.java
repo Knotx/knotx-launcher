@@ -115,6 +115,7 @@ class KnotxStarterVerticleStoresTest {
               testContext.completeNow();
             }
         );
+
   }
 
   @Test

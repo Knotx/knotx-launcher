@@ -20,7 +20,6 @@ group = "io.knotx"
 defaultTasks("distZip")
 
 plugins {
-    `java-library`
     id("io.knotx.java-library") version "0.1.1"
     id("io.knotx.maven-publish") version "0.1.1"
     id("io.knotx.jacoco") version "0.1.1"

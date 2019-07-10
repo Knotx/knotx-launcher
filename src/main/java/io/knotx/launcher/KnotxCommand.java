@@ -29,7 +29,6 @@ import io.vertx.core.impl.launcher.commands.BareCommand;
 import io.vertx.core.impl.launcher.commands.ExecUtils;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.launcher.ExecutionContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,8 +56,9 @@ public class KnotxCommand extends BareCommand {
   private boolean ha;
   private boolean cluster;
 
-  private static final String KNOTX_STARTER_VERTICLE = KnotxStarterVerticle.class.getName();
+  private String starterDeploymentId;
 
+  private static final String KNOTX_STARTER_VERTICLE = KnotxStarterVerticle.class.getName();
 
   /**
    * Enables / disables the high-availability.
@@ -97,22 +97,7 @@ public class KnotxCommand extends BareCommand {
   @Description("Specifies path to the config loader json Knot.x requires to start. " +
       "If not specified a '" + DEFAULT_LOADER_FILE + "' in the class path is to be used.")
   public void setConfig(String path) {
-    if (path != null) {
       this.config = path;
-    } else {
-      this.config = null;
-    }
-  }
-
-  /**
-   * Validates the command line parameters.
-   *
-   * @param context - the execution context
-   * @throws CLIException - validation failed
-   */
-  @Override
-  public void setUp(ExecutionContext context) throws CLIException {
-    super.setUp(context);
   }
 
   /**
@@ -157,20 +142,27 @@ public class KnotxCommand extends BareCommand {
       });
     }
 
+    deploy(conf);
+  }
+
+  protected void deploy(JsonObject conf) {
     deploymentOptions = new DeploymentOptions();
     configureFromSystemProperties(deploymentOptions, DEPLOYMENT_OPTIONS_PROP_PREFIX);
     deploymentOptions.setConfig(conf).setHa(ha);
     beforeDeployingVerticle(deploymentOptions);
-    deploy();
-  }
 
-  protected void deploy() {
     deploy(KNOTX_STARTER_VERTICLE, vertx, deploymentOptions, res -> {
-      if (res.failed()) {
+      if (res.succeeded()) {
+        starterDeploymentId = res.result();
+      }else{
         res.cause().printStackTrace();
         handleDeployFailed(res.cause());
       }
     });
+  }
+
+  void setVertex(Vertx v){
+    this.vertx = v;
   }
 
   private void handleDeployFailed(Throwable cause) {
@@ -228,18 +220,21 @@ public class KnotxCommand extends BareCommand {
     }
     return conf;
   }
-
   protected void beforeDeployingVerticle(DeploymentOptions deploymentOptions) {
-    final Object main = executionContext.main();
-    if (main instanceof VertxLifecycleHooks) {
-      ((VertxLifecycleHooks) main).beforeDeployingVerticle(deploymentOptions);
+    if(executionContext != null) {
+      final Object main = executionContext.main();
+      if (main instanceof VertxLifecycleHooks) {
+        ((VertxLifecycleHooks) main).beforeDeployingVerticle(deploymentOptions);
+      }
     }
   }
 
   protected void afterConfigParsed(JsonObject config) {
-    final Object main = executionContext.main();
-    if (main instanceof VertxLifecycleHooks) {
-      ((VertxLifecycleHooks) main).afterConfigParsed(config);
+    if(executionContext != null) {
+      final Object main = executionContext.main();
+      if (main instanceof VertxLifecycleHooks) {
+        ((VertxLifecycleHooks) main).afterConfigParsed(config);
+      }
     }
   }
 
@@ -255,5 +250,9 @@ public class KnotxCommand extends BareCommand {
     if (main instanceof VertxLifecycleHooks) {
       ((VertxLifecycleHooks) main).afterStoppingVertx();
     }
+  }
+
+  public String getStarterDeploymentId() {
+    return starterDeploymentId;
   }
 }
