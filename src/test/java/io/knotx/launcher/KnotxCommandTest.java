@@ -21,9 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -40,8 +43,20 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.Vertx;
 
-//@Execution(ExecutionMode.CONCURRENT)
+@Execution(ExecutionMode.CONCURRENT)
 public class KnotxCommandTest {
+  private Properties backup;
+
+  @BeforeEach
+  void backup() {
+    backup = new Properties();
+    backup.putAll(System.getProperties());
+  }
+
+  @AfterEach
+  void restore() {
+    System.setProperties(backup);
+  }
 
   @Test
   @DisplayName("Should read configuration from given path")
@@ -72,6 +87,7 @@ public class KnotxCommandTest {
 
   @Test
   @DisplayName("Should return null configuration for not existing file")
+  @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ)
   void should_return_null_for_not_existing_file(){
     //given
     KnotxCommand underTest = new KnotxCommandFactory().create(create(create("run-knox")));
@@ -86,6 +102,7 @@ public class KnotxCommandTest {
 
   @Test
   @DisplayName("Should return default deployment options")
+  @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ)
   void should_return_default_deployment_options(){
     //given
     KnotxCommand underTest = new KnotxCommandFactory().create(create(create("run-knox")));
@@ -100,6 +117,7 @@ public class KnotxCommandTest {
 
   @Test
   @DisplayName("Should overwrite HA option")
+  @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ)
   void should_overwriteHaOption(){
     //given
     KnotxCommand underTest = new KnotxCommandFactory().create(create(create("run-knox")));
@@ -113,6 +131,7 @@ public class KnotxCommandTest {
 
   @Test
   @DisplayName("Should read Vertex worker pool size from system property")
+  @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ_WRITE)
   void should_read_properties_from_system() {
     //given
     System.setProperty(BareCommand.DEPLOYMENT_OPTIONS_PROP_PREFIX + "workerPoolSize", "10");
@@ -127,6 +146,7 @@ public class KnotxCommandTest {
 
   @Test
   @DisplayName("One and only one Starter Verticle instance allowed")
+  @ResourceLock(value = Resources.SYSTEM_PROPERTIES, mode = ResourceAccessMode.READ_WRITE)
   void should_throws_exception_when_more_then_one_instance_set() {
     //given
     System.setProperty(BareCommand.DEPLOYMENT_OPTIONS_PROP_PREFIX + "instances", "10");
