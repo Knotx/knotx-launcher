@@ -18,6 +18,7 @@ package io.knotx.launcher;
 import static io.vertx.core.cli.CLI.create;
 import static io.vertx.core.cli.CommandLine.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -111,8 +112,8 @@ public class KnotxCommandTest {
     DeploymentOptions deploymentOptions = underTest.getDeploymentOptions(config);
 
     //then
-    Assertions.assertEquals(false, deploymentOptions.isHa());
-    Assertions.assertEquals(config, deploymentOptions.getConfig());
+    assertFalse(deploymentOptions.isHa());
+    assertEquals(config, deploymentOptions.getConfig());
   }
 
   @Test
