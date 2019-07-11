@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.nosphere.apache.rat.RatTask
 
 group = "io.knotx"
@@ -25,7 +22,7 @@ plugins {
     id("io.knotx.java-library") version "0.1.1"
     id("io.knotx.maven-publish") version "0.1.1"
     id("io.knotx.jacoco") version "0.1.1"
-
+    id("io.knotx.unit-test") version "0.1.1"
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
@@ -120,31 +117,6 @@ tasks {
     getByName("distConf").dependsOn("distScript")
     getByName("dist").dependsOn("distConf")
 }
-
-tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.add("-parameters")
-}
-
-tasks.withType<Test>().configureEach {
-    systemProperties(Pair("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory"))
-
-    failFast = true
-    useJUnitPlatform()
-    testLogging {
-        events = setOf(TestLogEvent.FAILED)
-        exceptionFormat = TestExceptionFormat.SHORT
-    }
-
-    dependencies {
-        testImplementation("io.knotx:knotx-junit5:${project.version}")
-        testImplementation(group = "io.vertx", name = "vertx-junit5")
-        testImplementation(group = "io.vertx", name = "vertx-unit")
-        testImplementation("org.junit.jupiter:junit-jupiter-api")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-    }
-}
-
-
 // -----------------------------------------------------------------------------
 // Publication
 // -----------------------------------------------------------------------------
