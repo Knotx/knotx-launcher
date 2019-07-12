@@ -15,10 +15,19 @@
  */
 package io.knotx.launcher;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Scanner;
+
+import com.google.common.base.Preconditions;
+
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.cli.CLIException;
 import io.vertx.core.cli.annotations.Description;
 import io.vertx.core.cli.annotations.Name;
 import io.vertx.core.cli.annotations.Option;
@@ -29,14 +38,6 @@ import io.vertx.core.impl.launcher.commands.BareCommand;
 import io.vertx.core.impl.launcher.commands.ExecUtils;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.spi.launcher.ExecutionContext;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Scanner;
 
 @Name("run-knotx")
 @Summary("Runs a Knot.x instance")
@@ -49,16 +50,12 @@ public class KnotxCommand extends BareCommand {
 
   private static final String DEFAULT_LOADER_FILE = "bootstrap.json";
 
-
-  private DeploymentOptions deploymentOptions;
-
   private String config;
 
   private boolean ha;
   private boolean cluster;
 
   private static final String KNOTX_STARTER_VERTICLE = KnotxStarterVerticle.class.getName();
-
 
   /**
    * Enables / disables the high-availability.
@@ -97,22 +94,7 @@ public class KnotxCommand extends BareCommand {
   @Description("Specifies path to the config loader json Knot.x requires to start. " +
       "If not specified a '" + DEFAULT_LOADER_FILE + "' in the class path is to be used.")
   public void setConfig(String path) {
-    if (path != null) {
-      this.config = path;
-    } else {
-      this.config = null;
-    }
-  }
-
-  /**
-   * Validates the command line parameters.
-   *
-   * @param context - the execution context
-   * @throws CLIException - validation failed
-   */
-  @Override
-  public void setUp(ExecutionContext context) throws CLIException {
-    super.setUp(context);
+    this.config = path;
   }
 
   /**
@@ -157,23 +139,32 @@ public class KnotxCommand extends BareCommand {
       });
     }
 
-    deploymentOptions = new DeploymentOptions();
-    configureFromSystemProperties(deploymentOptions, DEPLOYMENT_OPTIONS_PROP_PREFIX);
-    deploymentOptions.setConfig(conf).setHa(ha);
-    beforeDeployingVerticle(deploymentOptions);
-    deploy();
+    deploy(conf);
   }
 
-  protected void deploy() {
+  private void deploy(JsonObject conf) {
+    DeploymentOptions deploymentOptions = getDeploymentOptions(conf);
+    beforeDeployingVerticle(deploymentOptions);
+
     deploy(KNOTX_STARTER_VERTICLE, vertx, deploymentOptions, res -> {
       if (res.failed()) {
         res.cause().printStackTrace();
-        handleDeployFailed(res.cause());
+        handleDeployFailed(res.cause(), deploymentOptions);
       }
     });
   }
 
-  private void handleDeployFailed(Throwable cause) {
+  DeploymentOptions getDeploymentOptions(JsonObject conf) {
+    DeploymentOptions deploymentOptions = new DeploymentOptions();
+    configureFromSystemProperties(deploymentOptions, DEPLOYMENT_OPTIONS_PROP_PREFIX);
+
+    Preconditions.checkState(deploymentOptions.getInstances() == DeploymentOptions.DEFAULT_INSTANCES, "One and only one Starter Verticle allowed");
+    deploymentOptions.setConfig(conf).setHa(ha);
+
+    return deploymentOptions;
+  }
+
+  private void handleDeployFailed(Throwable cause, DeploymentOptions deploymentOptions) {
     if (executionContext.main() instanceof VertxLifecycleHooks) {
       ((VertxLifecycleHooks) executionContext.main())
           .handleDeployFailed(vertx, KNOTX_STARTER_VERTICLE, deploymentOptions, cause);
@@ -182,7 +173,7 @@ public class KnotxCommand extends BareCommand {
     }
   }
 
-  protected JsonObject getConfiguration() {
+  JsonObject getConfiguration() {
     //If the configuration wasn't provided in the command line
     //search in the classpath
     JsonObject conf;

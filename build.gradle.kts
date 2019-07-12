@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import org.nosphere.apache.rat.RatTask
 
 group = "io.knotx"
 defaultTasks("distZip")
 
 plugins {
-    `java-library`
     id("io.knotx.java-library") version "0.1.1"
     id("io.knotx.maven-publish") version "0.1.1"
     id("io.knotx.jacoco") version "0.1.1"
-
+    id("io.knotx.unit-test") version "0.1.1"
     id("org.nosphere.apache.rat") version "0.4.0"
 }
 
@@ -119,7 +117,6 @@ tasks {
     getByName("distConf").dependsOn("distScript")
     getByName("dist").dependsOn("distConf")
 }
-
 // -----------------------------------------------------------------------------
 // Publication
 // -----------------------------------------------------------------------------
