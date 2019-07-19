@@ -3,7 +3,7 @@
 Knot.x Launcher provides a way to configure and run **bare** Knot.x instance. It contains:
 - the `run-knotx` starting command that runs a Vert.x instance and deploys all configured modules 
 - instance configuration files
-- logger configuration files
+- [logger configuration files](#logback-settings)
 - distribution that contains all above and minimal set of dependencies (jar files in the `lib` directory) required to start the instance
 
 It is used in the [Knot.x Stack](https://github.com/Knotx/knotx-stack) to deliver fully functional 
@@ -82,7 +82,7 @@ The `bootstrap.json` file is structured around:
 that configures a set of configuration stores and ability to scan the changes
 - a **Configuration store** that defines a location from where the configuration data is read and a syntax
 
-The structure of the file is as follows
+The structure of the file defines [Vert.x `ConfigRetrieverOptions`](https://vertx.io/docs/apidocs/io/vertx/config/ConfigRetrieverOptions.html):
 ```json
 {
   "configRetrieverOptions": {
@@ -100,13 +100,17 @@ The structure of the file is as follows
   }
 }
 ```
+
 - `scanPeriod` in milliseconds. If property is specified, Launcher scans the defined configuration stores and redeploys the Knot.x application on changes.
-- `stores` it's an array of configuration stores. Each store requires two properties:
+- `stores` it's an array of [Vert.x `ConfigStoreOptions`](https://vertx.io/docs/apidocs/io/vertx/config/ConfigStoreOptions.html):
   - `type` a declared data store, such as File(**file**), JSON(**json**), Environment Variables(**env**), System Properties(**sys**), HTTP endpoint(**http**), Event Bus (**event-bus**), Directory(**dir**), Git (**git**), Kubernetes Config Map(**configmap**), Redis(**redis**), Zookeeper (**zookeeper**), Consul (**consul**), Spring Config (**spring-config-server**), Vault (**vault**)
   - `format` a format of the configuration file, such as JSON(**json**), HOCON(**conf**) and YAML(**yaml**)
-  - config
-    - path - a relative or absolute path to the Knot.x modules configuration file, if not specified 
+  - `config`
+    - `path` - a relative or absolute path to the Knot.x modules configuration file, if not specified 
     then it get the `knotx.home` system property and append it with `conf`
+  - `optional` - whether or not the store is considered as optional. When the configuration 
+  is retrieve, if an optional store returns a failure, the failure is ignored and an 
+  empty json object is used instead (for this store). The default value is `false`.
   
 In addition to the out of the box config stores and formats it's easy to provide your own [custom 
 implementation](https://github.com/Knotx/knotx-launcher/blob/master/src/main/java/io/knotx/launcher/config/ConfProcessor.java) 
@@ -122,15 +126,16 @@ from JSON, but make it more convenient as a human-editable config file format. N
 from JSON are comments, variables and includes.
 
 The structure of the file is composed on the following sections:
-- `modules` - an array of Verticles to start
+- `modules` - a map of Verticles to start
 - `config` - actual configuration for the given Verticle.
 
 ```hocon
 ########### Modules to start ###########
-modules = [
-  "myserver=io.knotx.server.KnotxServerVerticle"
+modules {
+  # alias = verticle class name
+  myserver = "io.knotx.server.KnotxServerVerticle"
   # Other modules to start
-]
+}
 
 ########### Modules configurations ###########
 config.myserver {
@@ -142,6 +147,20 @@ config.myserver {
 ## More configs below
 
 ```
+
+The `config` section for each module is expected to have following structure: `MODULE_ALIAS.options.config`, where:
+- `MODULE_ALIAS` is exactly the same alias that was used in the `modules` JSON object (`myserver` for the 
+example above),
+- `options` object carries-on configuration called DeploymentOptions for a given verticle.
+It allows you to control the verticle behaviour, such as how many instances, classpath isolation, 
+workers, etc. Read more here: http://vertx.io/docs/vertx-core/dataobjects.html#DeploymentOptions,
+  - `options.config` contain additional config for the module that is used to create its instance 
+  that is passed as module `DeploymentOptions.config`.
+  - `options.required` - Some modules are crucial for Knot.x instance (e.g. HTTP Server) and 
+  the instance should not start without them. Required (`required=true`) modules
+  will fail starting the whole Knot.x instance if they fail to deploy, while not-required (`required=false`)
+  let the the instance start despite the fact they failed to start. 
+  By default **all modules are required**.
 
 The `config` section can be defined in the form that works best for you, e.g.
 It can be just raw JSON, or HOCONized version of it as follows:
@@ -185,3 +204,7 @@ E.g. you can configure default value directly in the application.conf and custom
 someField = 1234
 someField = ${?my.field.value}
 ```
+
+### Logback settings
+Knot.x Launcher module contains default [logback settings](https://github.com/Knotx/knotx-launcher/tree/master/src/main/resources/io/knotx/logging/logback)
+in the `resources`, to provide default logger configuration for the instances.

@@ -6,7 +6,7 @@
         "type": "file",
         "format": "conf",
         "config": {
-          "path": "simple/PATH_TO_CONFIG_FILE"
+          "path": "multiple-stores/application-A.conf"
         },
         "optional": false
       }

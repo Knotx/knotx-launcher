@@ -1,0 +1,31 @@
+{
+  "configRetrieverOptions": {
+    "scanPeriod": 5000,
+    "stores": [
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "multiple-stores/application-A.conf"
+        },
+        "optional": false
+      },
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "multiple-stores/application-B.conf"
+        },
+        "optional": false
+      },
+      {
+        "type": "file",
+        "format": "conf",
+        "config": {
+          "path": "multiple-stores/application-C.conf"
+        },
+        "optional": false
+      }
+    ]
+  }
+}

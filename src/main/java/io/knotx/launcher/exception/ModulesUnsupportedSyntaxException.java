@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.knotx.launcher.rule;
+package io.knotx.launcher.exception;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.vertx.core.json.JsonObject;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface KnotxConfiguration {
+public class ModulesUnsupportedSyntaxException extends IllegalArgumentException {
 
-  String value();
+  private static final String MESSAGE = "\"modules\" property is not a valid JsonObject: ";
+
+  public ModulesUnsupportedSyntaxException(JsonObject config) {
+    super(MESSAGE + printConfig(config));
+  }
+
+  private static String printConfig(JsonObject config) {
+    return config == null ? null : config.encodePrettily();
+  }
 }
