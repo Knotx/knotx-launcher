@@ -21,17 +21,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.knotx.junit5.util.FileReader;
-import io.knotx.launcher.TestVerticlesFactory.VerificationContext;
-import io.knotx.launcher.exception.ModulesUnsupportedSyntaxException;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
-import io.vertx.reactivex.core.Vertx;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import io.knotx.launcher.TestVerticlesFactory.VerificationContext;
+import io.knotx.launcher.exception.ModulesUnsupportedSyntaxException;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import io.vertx.reactivex.core.Vertx;
 
 @ExtendWith(VertxExtension.class)
 class KnotxStarterVerticleTest {
@@ -127,9 +126,7 @@ class KnotxStarterVerticleTest {
   @DisplayName("Deploy a module with a configuration included from a separate file and property defined in system properties.")
   void startModuleWithIncludesWithSystemPropertyValue(VertxTestContext testContext, Vertx vertx) {
     // given
-    String storesConfig = FileReader.readTextSafe("complex-system/bootstrap.json");
-    DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject(storesConfig));
-
+    DeploymentOptions options = fromBootstrapFile("complex-system/bootstrap.json");
 
     vertx.registerVerticleFactory(TestVerticlesFactory
         .allVerticlesStart(
