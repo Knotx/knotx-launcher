@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-launcher?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=7&branchName=master)
+
 # Knot.x Launcher
 
 Knot.x Launcher provides a way to configure and run **bare** Knot.x instance. It contains:
