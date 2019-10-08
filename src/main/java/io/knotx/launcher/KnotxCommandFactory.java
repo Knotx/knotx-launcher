@@ -26,6 +26,6 @@ public class KnotxCommandFactory extends DefaultCommandFactory<KnotxCommand> {
    * Creates a new instance of {@link KnotxCommandFactory}.
    */
   public KnotxCommandFactory() {
-    super(KnotxCommand.class);
+    super(KnotxCommand.class, KnotxCommand::new);
   }
 }
