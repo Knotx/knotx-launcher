@@ -1,4 +1,5 @@
 [![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-launcher?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=7&branchName=master)
+[![CodeFactor](https://www.codefactor.io/repository/github/knotx/knotx-launcher/badge)](https://www.codefactor.io/repository/github/knotx/knotx-launcher)
 [![codecov](https://codecov.io/gh/Knotx/knotx-launcher/branch/master/graph/badge.svg)](https://codecov.io/gh/Knotx/knotx-launcher)
 
 # Knot.x Launcher
