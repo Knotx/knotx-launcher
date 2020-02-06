@@ -23,7 +23,7 @@ plugins {
     id("io.knotx.maven-publish") version "0.1.1"
     id("io.knotx.jacoco") version "0.1.1"
     id("io.knotx.unit-test") version "0.1.1"
-    id("org.nosphere.apache.rat") version "0.4.0"
+    id("org.nosphere.apache.rat") version "0.6.0"
 }
 
 repositories {
@@ -95,7 +95,7 @@ tasks {
 //    getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
-        excludes.addAll("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*", ".vertx/*")
+        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*", ".vertx/*"))
     }
     getByName("build").dependsOn("rat")
 
