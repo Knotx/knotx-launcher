@@ -1,7 +1,7 @@
 [![Build Status](https://dev.azure.com/knotx/Knotx/_apis/build/status/Knotx.knotx-launcher?branchName=master)](https://dev.azure.com/knotx/Knotx/_build/latest?definitionId=7&branchName=master)
 [![CodeFactor](https://www.codefactor.io/repository/github/knotx/knotx-launcher/badge)](https://www.codefactor.io/repository/github/knotx/knotx-launcher)
 [![codecov](https://codecov.io/gh/Knotx/knotx-launcher/branch/master/graph/badge.svg)](https://codecov.io/gh/Knotx/knotx-launcher)
-[![Gradle Status](https://gradleupdate.appspot.com/Knotx/knotx-commons/status.svg)](https://gradleupdate.appspot.com/Knotx/knotx-commons/status)
+[![Gradle Status](https://gradleupdate.appspot.com/Knotx/knotx-launcher/status.svg)](https://gradleupdate.appspot.com/Knotx/knotx-launcher/status)
 
 # Knot.x Launcher
 
