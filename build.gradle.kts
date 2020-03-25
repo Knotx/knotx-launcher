@@ -19,20 +19,20 @@ group = "io.knotx"
 defaultTasks("distZip")
 
 plugins {
-    id("io.knotx.java-library") version "0.1.1"
-    id("io.knotx.maven-publish") version "0.1.1"
-    id("io.knotx.jacoco") version "0.1.1"
-    id("io.knotx.unit-test") version "0.1.1"
-    id("org.nosphere.apache.rat") version "0.6.0"
+    id("io.knotx.java-library")
+    id("io.knotx.maven-publish")
+    id("io.knotx.jacoco")
+    id("io.knotx.unit-test")
+    id("io.knotx.release-java")
+    id("org.nosphere.apache.rat")
 }
 
 repositories {
     jcenter()
     mavenLocal()
     maven { url = uri("https://plugins.gradle.org/m2/") }
-    maven { url = uri("http://repo1.maven.org/maven2") }
+    maven { url = uri("https://repo1.maven.org/maven2") }
     maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
-    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
 }
 
 // -----------------------------------------------------------------------------
@@ -55,7 +55,6 @@ dependencies {
     implementation(group = "org.apache.commons", name = "commons-lang3")
     implementation(group = "com.google.guava", name = "guava")
 
-    testImplementation(group = "io.vertx", name = "vertx-junit5")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params")
     testImplementation(group = "io.vertx", name = "vertx-unit")
@@ -95,7 +94,12 @@ tasks {
 //    getByName<JavaCompile>("compileJava").dependsOn("templatesProcessing")
 
     named<RatTask>("rat") {
-        excludes.addAll(listOf("*.yml", "*.md", "**/*.md", "*.properties", "script/*", "conf/*", "**/build/*", "gradle/wrapper/*", "gradlew", "gradlew.bat", "src/test/resources/*", "out/*", ".idea/*", ".vertx/*"))
+        excludes.addAll(listOf(
+                "*.yml", "*.md", // docs and configs
+                "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
+                "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
+                ".github/*", "**/*.conf", "**/*.json"
+        ))
     }
     getByName("build").dependsOn("rat")
 
