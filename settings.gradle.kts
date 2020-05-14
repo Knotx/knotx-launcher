@@ -15,3 +15,20 @@
  */
 
 rootProject.name = "knotx-launcher"
+
+pluginManagement {
+    val version: String by settings
+    plugins {
+        id("io.knotx.java-library") version version
+        id("io.knotx.unit-test") version version
+        id("io.knotx.jacoco") version version
+        id("io.knotx.maven-publish") version version
+        id("io.knotx.release-java") version version
+        id("org.nosphere.apache.rat") version "0.6.0"
+    }
+    repositories {
+        mavenLocal()
+        jcenter()
+        gradlePluginPortal()
+    }
+}

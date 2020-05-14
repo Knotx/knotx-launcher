@@ -20,19 +20,17 @@ defaultTasks("distZip")
 
 plugins {
     id("io.knotx.java-library")
-    id("io.knotx.maven-publish")
-    id("io.knotx.jacoco")
     id("io.knotx.unit-test")
+    id("io.knotx.jacoco")
+    id("io.knotx.maven-publish")
     id("io.knotx.release-java")
     id("org.nosphere.apache.rat")
 }
 
 repositories {
-    jcenter()
     mavenLocal()
-    maven { url = uri("https://plugins.gradle.org/m2/") }
-    maven { url = uri("https://repo1.maven.org/maven2") }
-    maven { url = uri("https://oss.sonatype.org/content/groups/staging/") }
+    jcenter()
+    gradlePluginPortal()
 }
 
 // -----------------------------------------------------------------------------
