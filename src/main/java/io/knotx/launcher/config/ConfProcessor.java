@@ -15,8 +15,6 @@
  */
 package io.knotx.launcher.config;
 
-import static io.vertx.config.impl.spi.PropertiesConfigProcessor.closeQuietly;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigIncludeContext;
@@ -77,8 +75,7 @@ public class ConfProcessor implements ConfigProcessor {
     // Indeed, HOCON resolution can read others files (includes).
     vertx.executeBlocking(
         future -> {
-          Reader reader = new StringReader(input.toString("UTF-8"));
-          try {
+          try (Reader reader = new StringReader(input.toString("UTF-8"))){
             Config conf = ConfigFactory.parseReader(reader,
                 ConfigParseOptions.defaults().appendIncluder(new KnotxConfIncluder(configuration)));
 
@@ -91,8 +88,6 @@ public class ConfProcessor implements ConfigProcessor {
             future.complete(json);
           } catch (Exception e) {
             future.fail(e);
-          } finally {
-            closeQuietly(reader);
           }
         },
         handler
