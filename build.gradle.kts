@@ -29,13 +29,14 @@ plugins {
 
 repositories {
     mavenLocal()
-    jcenter()
+    mavenCentral()
     gradlePluginPortal()
 }
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
     }
 }
 
@@ -66,11 +67,15 @@ dependencies {
 // -----------------------------------------------------------------------------
 // Source sets
 // -----------------------------------------------------------------------------
-tasks.named<JavaCompile>("compileJava") {
-    options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
-}
-tasks.named<Delete>("clean") {
-    delete.add("src/main/generated")
+tasks {
+    getByName<JavaCompile>("compileJava") {
+        options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
+    }
+    getByName<Delete>("clean") {
+        delete.add("src/main/generated")
+    }
+    getByName("rat").dependsOn("compileJava")
+    getByName("sourcesJar").dependsOn("compileJava")
 }
 sourceSets.named("main") {
     java.srcDir("src/main/generated")
@@ -99,13 +104,15 @@ tasks {
 
     named<RatTask>("rat") {
         excludes.addAll(listOf(
-                "*.yml", "*.md", // docs and configs
-                "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
-                "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
-                ".github/*", "**/*.conf", "**/*.json"
+            "**/*.md", // docs
+            "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
+            "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
+            "**/generated/*", "**/*.adoc", "**/resources/**", // assets
+            ".github/*", "conf/*.json", "conf/*.conf"
         ))
     }
     getByName("build").dependsOn("rat")
+    getByName("rat").dependsOn("compileJava")
 
     register<Copy>("distScript") {
         from("script")
