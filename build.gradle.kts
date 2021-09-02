@@ -33,13 +33,6 @@ repositories {
     gradlePluginPortal()
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-        vendor.set(JvmVendorSpec.ADOPTOPENJDK)
-    }
-}
-
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
