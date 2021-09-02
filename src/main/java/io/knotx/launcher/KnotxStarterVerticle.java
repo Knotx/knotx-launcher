@@ -45,7 +45,6 @@ public class KnotxStarterVerticle extends AbstractVerticle {
   private static final String FILE_STORE = "file";
   private static final String KNOTX_HOME_PROPERTY = "knotx.home";
   private List<ModuleDescriptor> deployedModules;
-  private ConfigRetriever configRetriever;
   private SystemProperties systemProperties;
 
   @Override
@@ -57,7 +56,8 @@ public class KnotxStarterVerticle extends AbstractVerticle {
     try {
       JsonObject configOptions = getConfigRetrieverOptions(config());
 
-      configRetriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions(configOptions));
+      ConfigRetriever configRetriever = ConfigRetriever
+          .create(vertx, new ConfigRetrieverOptions(configOptions));
       configRetriever.listen(conf -> {
         if (!deployedModules.isEmpty()) {
           LOGGER.warn("Configuration changed - Re-deploying Knot.x");
@@ -172,8 +172,6 @@ public class KnotxStarterVerticle extends AbstractVerticle {
           .orElse(Collections.emptyMap()).entrySet();
     } else {
       throw new ModulesUnsupportedSyntaxException(config);
-//      throw new Modules(
-//          "\"modules\" property defined in the configuration should be a JsonObject");
     }
   }
 
