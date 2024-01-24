@@ -62,7 +62,7 @@ dependencies {
 // -----------------------------------------------------------------------------
 tasks {
     getByName<JavaCompile>("compileJava") {
-        options.annotationProcessorGeneratedSourcesDirectory = file("src/main/generated")
+        options.generatedSourceOutputDirectory.set(File("src/main/generated"))
     }
     getByName<Delete>("clean") {
         delete.add("src/main/generated")
@@ -98,7 +98,7 @@ tasks {
     named<RatTask>("rat") {
         excludes.addAll(listOf(
             "**/*.md", // docs
-            "gradle/wrapper/**", "gradle*", "**/build/**", // Gradle
+            "gradle/wrapper/**", "gradle*", "**/build/**", "**/bin/**", // Gradle
             "*.iml", "*.ipr", "*.iws", "*.idea/**", // IDEs
             "**/generated/*", "**/*.adoc", "**/resources/**", // assets
             ".github/*", "conf/*.json", "conf/*.conf"
