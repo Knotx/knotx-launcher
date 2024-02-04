@@ -30,12 +30,14 @@ $> ./gradlew
 ```
 
 To start Knot.x instance:
-```
+```bash
 $> cd build/dist
-$> unzip knotx-launcher-X.Y.Z.zip -d launcher
-$> cd launcher
-$> ./bin/start run-knotx
-...
+$> chmod +x bin/start
+$> bin/start run-knotx
+```
+
+The output should look like:
+```log
 13:56:15.890 [vert.x-eventloop-thread-0] INFO io.knotx.launcher.KnotxStarterVerticle - Knot.x STARTED
 13:56:15.894 [vert.x-eventloop-thread-1] INFO io.vertx.core.impl.launcher.commands.VertxIsolatedDeployer - Succeeded in deploying verticle
 ```
