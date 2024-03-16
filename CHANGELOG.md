@@ -3,6 +3,8 @@ All notable changes to `knotx-launcher` will be documented in this file.
 
 ## Unreleased
 List of changes that are finished but not yet released in any final version.
+                
+## 2.4.0
 - [PR-51](https://github.com/Knotx/knotx-launcher/pull/51) - Upgrade Gradle to 7.6.3
 
 ## 2.3.1
